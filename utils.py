@@ -1,3 +1,5 @@
+import math
+
 def _seconds(value, edit_rate):
     if isinstance(value, str):  # value seems to be a timestamp
         _zip_ft = zip((3600, 60, 1, 1/edit_rate), value.split(':'))
