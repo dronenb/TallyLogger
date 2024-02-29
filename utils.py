@@ -1,4 +1,21 @@
 import math
+import datetime
+
+
+def secondsSinceMidnight():
+    now = datetime.datetime.now()
+    midnight = datetime.datetime.combine(now.date(), datetime.time())
+    seconds = (now - midnight).seconds
+    return seconds
+
+def msSinceMidnight():
+    now = datetime.datetime.now()
+    midnight = datetime.datetime.combine(now.date(), datetime.time())
+    seconds = (now - midnight).seconds
+    microseconds = (now - midnight).microseconds
+    milliseconds = (seconds*1000) + int(microseconds/1000)
+
+    return milliseconds
 
 def _seconds(value, edit_rate):
     if isinstance(value, str):  # value seems to be a timestamp

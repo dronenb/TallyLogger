@@ -7,7 +7,7 @@ from __future__ import (
 import os
 import avb
 # extra module that may be useful in shared environments
-import avb.binlock as binlock
+# import binlock as binlock
 import avb.utils
 import sys
 import json
@@ -153,7 +153,7 @@ def create_mastermob(f, edit_rate, mob_length = sequence_length, tape_mob_name=u
     \
     return mob
 
-def test_create_sequence():
+def writeTallyAVB():
 
     result_file = os.path.join(result_dir, sequence_name + '.avb')
     with avb.open() as f:
@@ -317,7 +317,7 @@ def test_create_sequence():
     # binlock.main("LockText", result_file)
             
 try:
-    test_create_sequence()
+    writeTallyAVB()
     logger.info('AVB success')
 except Exception as e:
     logger.error(repr(e))
