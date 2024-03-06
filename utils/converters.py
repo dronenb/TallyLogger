@@ -1,6 +1,9 @@
-import math
-import datetime
+from datetime import datetime
 
+# get current date and time
+current_datetime = datetime.now().strftime("%Y-%m-%d %H-%M-%S")
+# convert datetime obj to string - not currently used
+str_current_datetime = str(current_datetime)
 
 def secondsSinceMidnight():
     now = datetime.datetime.now()

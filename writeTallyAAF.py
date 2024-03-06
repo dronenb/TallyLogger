@@ -3,11 +3,9 @@ import aaf2
 import json
 import os
 import logging
-from datetime import datetime
-from utils import frames_to_TC, msToFrames, msToHMS, convert_8_16bit
+from utils.converters import frames_to_TC, msToFrames, msToHMS, convert_8_16bit
 
 
-## TODO - now called by readTally.py (or seperately?)
 ## NOW has master mobs = sequence length created and used 
 ## TODO - increase number of arguments from index.js so nothing needs to be changed in here
 ## TODO - think about audio
@@ -15,13 +13,6 @@ from utils import frames_to_TC, msToFrames, msToHMS, convert_8_16bit
 comments = True
 frames = 0
 tc = ""
-
-# get current date and time
-current_datetime = datetime.now().strftime("%Y-%m-%d %H-%M-%S")
- 
-# convert datetime obj to string
-str_current_datetime = str(current_datetime)
-
 
 if len(sys.argv) > 1:
     # Data from tally-timer when this script is called from index.js
@@ -78,36 +69,23 @@ with aaf2.open(file_name, "w")  as f:
     # Composition Mob created first
     comp_mob = f.create.CompositionMob()
     comp_mob.name = sequence_name
-    # TODO - make this a function that makes sends
-    # Adds color to sequence
 
+    # Add color to SEQUENCE (only Avid seems to read this)
     attrib_list = comp_mob['MobAttributeList']
     attrib_list.append(f.create.TaggedValue("_COLOR_R", 12000))
     attrib_list.append(f.create.TaggedValue("_COLOR_G", 16000))
     attrib_list.append(f.create.TaggedValue("_COLOR_B", 60000))
 
-# Create a TimelineMobSlot with a Timecode Segment for the start timecode
+    # Create a TimelineMobSlot with a Timecode Segment for the start timecode
     tc_segment = f.create.Timecode(edit_rate)
     tc_segment.start = sequence_start
     tc_slot = comp_mob.create_timeline_slot(edit_rate, slot_id=1)
     tc_slot.segment = tc_segment
 
-    # Sequence contains ??
-    sequence = f.create.Sequence(media_kind="picture", length = sequence_length)
-    
-    # # Timeline slot contains the pictures?
-    # timeline_slot = comp_mob.create_timeline_slot(edit_rate, slot_id=2)
-    # timeline_slot.segment = sequence
-    
-    timecode_fps = edit_rate
-    test_path = "some_path.mov"
-
-
     for key in dictMasterMobInfo.keys():
 
         # tape_name = dictMasterMobInfo[key][0] # Tape name from source
         tape_name = dictMasterMobInfo['PGM'][0] # Tape name from PGM
-
 
         if tape_name == "":
             tape_name="unknown"
@@ -115,7 +93,7 @@ with aaf2.open(file_name, "w")  as f:
         # Make the Tape MOB
         tape_mob = f.create.SourceMob()
         
-        tape_slot, tape_timecode_slot = tape_mob.create_tape_slots(tape_name, edit_rate, timecode_fps)        
+        tape_slot, tape_timecode_slot = tape_mob.create_tape_slots(tape_name, edit_rate, edit_rate)        
         
         # set start time for clip
         tape_timecode_slot.segment.start = clip_start
@@ -124,16 +102,10 @@ with aaf2.open(file_name, "w")  as f:
 
         f.content.mobs.append(tape_mob)
 
-        # Make a FileMob
+        # Make a FileMob - not sure where this goes?
         file_mob = f.create.SourceMob()
 
-        # Make a locator - not sure we need this
-        loc = f.create.NetworkLocator()
-        loc['URLString'].value = test_path # TODO - not sure hwat we need here
-
         file_description = f.create.CDCIDescriptor()
-        file_description.locator.append(loc)
-
         file_description['ComponentWidth'].value = 8
         file_description['HorizontalSubsampling'].value = 4
         file_description['ImageAspectRatio'].value = '16/9'
@@ -142,7 +114,7 @@ with aaf2.open(file_name, "w")  as f:
         file_description['FrameLayout'].value = 'FullFrame'
         file_description['VideoLineMap'].value = [42, 0]
         file_description['SampleRate'].value = edit_rate
-        file_description['Length'].value = 10
+        file_description['Length'].value = sequence_length
 
         file_mob.descriptor = file_description
         # This length affects length of master mob and in timeline
@@ -155,6 +127,7 @@ with aaf2.open(file_name, "w")  as f:
         # Make the Master MOBs
 
         master_mob = f.create.MasterMob()
+        # Add color to the master_mob (shows on MASTERCLIP in Avid only)
         master_mob.name = key
         clip_color = dictMasterMobInfo[key][1]
         if clip_color != "":
@@ -164,8 +137,6 @@ with aaf2.open(file_name, "w")  as f:
             attrib_list.append(f.create.TaggedValue("_COLOR_B", convert_8_16bit(clip_color[2]))) 
 
         clip = file_mob.create_source_clip(slot_id=1)
-
-
         slot = master_mob.create_picture_slot(edit_rate)
         slot.segment.components.append(clip)
 
@@ -173,42 +144,17 @@ with aaf2.open(file_name, "w")  as f:
         dictMobID[key] = master_mob
         f.content.mobs.append(master_mob)
 
-# TODO This is the marker section - really just one marker atm
-    if comments:
-        ems = f.create.EventMobSlot()
-        ems['EditRate'].value = edit_rate
-        ems['SlotID'].value = 1000
-        # # doesn't work in avid unless you specify
-        # # the same PhysicalTrackNumber as the target TimelineMobSlot.
-        ems['PhysicalTrackNumber'].value = 1
-
-        marker_sequence = f.create.Sequence("DescriptiveMetadata")
-        marker = f.create.DescriptiveMarker()
-        marker['Position'].value = 1
-        marker['Comment'].value = "This is a comment"
-        marker['CommentMarkerUser'].value = "easyLog"
-
-        marker_sequence.components.append(marker)
-        ems.segment = marker_sequence
-        comp_mob.slots.append(ems)
-
     # Finally append everthing to content
     f.content.mobs.append(comp_mob)
 
 
-    # Nested slots are multiple video tracks in the sequence
-    # Range seems to need to be number of tracks required +1
     for i in range(1,3):
-        nested_slot = comp_mob.create_timeline_slot(edit_rate)
-        nested_slot['PhysicalTrackNumber'].value = i
-        nested_scope = f.create.NestedScope()
-        nested_slot.segment= nested_scope
-
         sequence = f.create.Sequence(media_kind="picture")
-        nested_scope.slots.append(sequence)
-        # SOURCE on V1 with PGM tape name
-        if i == 1 :
-            nested_slot.name = 'SRC-PGM'
+        timeline_slot = comp_mob.create_timeline_slot(edit_rate)
+        timeline_slot.segment= sequence
+        
+        if (i == 1):
+            timeline_slot.name = "SRC"
             clip_position = 0
             for j, event in enumerate(events["clips"]):
 
@@ -231,13 +177,12 @@ with aaf2.open(file_name, "w")  as f:
                 # This is the length of the source clip - filled with the master mob
                 clip.length = clip_length
                 # this is that clip appended to the sequence
+
                 sequence.components.append(clip)
-
+               
                 clip_position += clip_length
-
-        # PGM on V2 with PGM
-        if i == 2 :
-            nested_slot.name = 'PGM-PGM'
+        else:
+            timeline_slot.name = "PGM"
             clip_position = 0
             for j, event in enumerate(events["clips"]):
 
@@ -261,20 +206,24 @@ with aaf2.open(file_name, "w")  as f:
                 clip.length = clip_length
                 # this is that clip appended to the sequence
                 sequence.components.append(clip)
+                # TODO This is the marker section - really just one marker atm
+                if comments:
+                    marker_sequence = f.create.Sequence("DescriptiveMetadata")
+                    marker = f.create.DescriptiveMarker()
+                    marker['Position'].value = clip_position + 1 # Not visible at 0?? Plus double markers - not sure why
+                    # marker['Length'].value = clip_length 
+                    magenta={u'blue': 52428, u'green': 13107, u'red': 52428} # seems to need to be precise
+                    marker['CommentMarkerColor'].value=magenta
+                    marker['Comment'].value = f"{event['TEXT']}"
+                    marker['CommentMarkerUser'].value = "easyLog"
 
+                    marker_sequence.components.append(marker)
+                    ems = f.create.EventMobSlot()
+                    ems['EditRate'].value = edit_rate
+                    ems['SlotID'].value = 1
+                    ems.segment = marker_sequence
+                    comp_mob.slots.append(ems)
                 clip_position += clip_length
 
 
-    # TODO Multiple audio tracks in the sequence
-    # for i in range(1,5):
-    #     nested_slot = comp_mob.create_timeline_slot(edit_rate)
-    #     nested_slot['PhysicalTrackNumber'].value = i
-    #     nested_slot.name = 'Slot_A_' + str(i)
-    #     nested_scope = f.create.NestedScope()
-    #     nested_slot.segment= nested_scope
-
-    #     sequence = f.create.Sequence(media_kind="sound")
-    #     nested_scope.slots.append(sequence)
-    #     comp_fill = f.create.Filler("sound", sequence_length)
-    #     sequence.components.append(comp_fill)
 logger.info("AAF success")

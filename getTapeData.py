@@ -1,6 +1,7 @@
 import sys
 import csv
 
+# CSV storing tally source / tape name / clip color name info that can be updated daily
 file_name = "/Users/trevoraylward/Documents/GitHub/TallyLogger/TallyTapeName.csv"
 
 # colors stored as RGB for simplicity and multiplied when used for AAF 
@@ -30,7 +31,34 @@ colorsRGB = {
 	'tan': [210, 180, 140],
 	'brown': [165, 42, 42],
 	'silver': [192, 192, 192],
-	'black': [0, 0, 0]}
+	'black': [0, 0, 0]
+    }
+
+	# TODO use Tape as a class
+	# TODO - add extension so that audio config can come with the tape? (e.g. Front Left etc)
+    # Should maybe be a tape per day?? How does EVS / Avid deal with midnight??
+
+class Tape():
+	def __init__(self, tally_source, tape_name, clip_color_name):
+		""" Create a Tape object. Keyword arguments: tally_source -- the source name for the Tape tape_name -- the tape name for that source clip_color_name -- the color that clip should be in Avid"""
+		self.tally_source = tally_source # Should be unique? (i.e. we are in trouble if there are duplicate sources)
+		self.tape_name = tape_name 
+		self.color_name = clip_color_name
+		self.clip_colorRGB = colorsRGB.get(clip_color_name)
+	def __iter__(self):
+		yield {
+			"tally_source": self.tally_source,
+			"tape_name": self.tape_name,
+			"color_name": self.color_name,
+            "clip_colorRGB": self.clip_colorRGB
+		}
+
+	def __str__(self):
+		return json.dumps(self, ensure_ascii=False, cls=CustomEncoder)
+
+	def __repr__(self):
+		return self.__str__()
+
 def getTapeData():
     try:
         file = open (file_name, "r")
@@ -42,13 +70,15 @@ def getTapeData():
         reader = csv.DictReader(csvfile)
         dictTapeNameInfo = {}
         for row in reader:
-            key = row.get('Source')
+            tally_source = row.get('Source')
             tape_name = row.get('TapeName')
-            clip_color_key = row.get('ColorName')
-            clip_color = colorsRGB.get(clip_color_key)
-            dictTapeNameInfo.update({key: [tape_name, clip_color]})
+            clip_color_name = row.get('ColorName')
+            tape = Tape(tally_source, tape_name, clip_color_name)
+            # dictTapeNameInfo.update({tally_source: [tape_name, clip_colorRGB]})
+            # need to refactor so this is an array, list, set, collection? of tape objects
+            dictTapeNameInfo.update({tape.tally_source: [tape.tape_name, tape.clip_colorRGB]})
+            print({tape.tally_source: [tape.tape_name, tape.clip_colorRGB]})
 
         csvfile.close()
-        return dictTapeNameInfo
-
+        return dictTapeNameInfo # should really be a bunch of Tape objects
 getTapeData()    

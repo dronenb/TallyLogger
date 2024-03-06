@@ -4,21 +4,12 @@ from __future__ import (
     print_function,
     division,
     )
-import os
+import os, sys, subprocess, json, logging
 import avb
 # extra module that may be useful in shared environments
 # import binlock as binlock
 import avb.utils
-import sys
-import json
-import logging
-from datetime import datetime
-from utils import frames_to_TC, msToFrames, msToHMS, convert_8_16bit
-
-# get current date and time
-current_datetime = datetime.now().strftime("%Y-%m-%d %H-%M-%S")
-# convert datetime obj to string - not currently used
-str_current_datetime = str(current_datetime)
+from utils.converters import frames_to_TC, msToFrames, msToHMS, convert_8_16bit
 
 # Read arguments 
 if len(sys.argv) > 1:
@@ -41,11 +32,14 @@ else:
 if not os.path.exists(result_dir): # doesn't seem to work
     os.makedirs(result_dir)
 
+
 # Logging
 logging.basicConfig(filename=os.path.join(result_dir, 'error.log'), level=logging.INFO, format='%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s')
 logger=logging.getLogger(__name__)
 
-logger.info("Started AVB")
+logger.info("Started AVB\n")
+template_bin_file = os.path.join(os.path.dirname(os.path.dirname(result_dir)), '_templates/_template.avb')
+
 
 # g=open(os.path.join(result_dir, 'test_events' + '.txt'), "w")
 # g.write(str(events))
@@ -75,6 +69,22 @@ sequence_end = frames
 
 sequence_length = sequence_end - sequence_start
 
+def binsmith(file_path, template_path=None):
+    command_line_args = [file_path]
+
+    if template_path:
+        command_line_args.extend(['-t', template_path])
+
+    try:
+        subprocess.run([sys.executable, 'utils/binsmith.py'] + command_line_args, check=True)
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Error: {e}")
+
+# Example usage:
+# binsmith('my_new_bin.avb', 'path/to/template.avb')
+# or
+# binsmith('my_new_bin.avb')
+
 
 
 def create_mastermob(f, edit_rate, mob_length = sequence_length, tape_mob_name=u"MasterMobTapeMobName", \
@@ -93,12 +103,13 @@ def create_mastermob(f, edit_rate, mob_length = sequence_length, tape_mob_name=u
     track.component.length = mob_length
     track.component.fps = edit_rate # otherwise defaults to 25 fps
     tape_mob.tracks.append(track)
+
+    #V1
     track = f.create.Track()
     track.index = 1
     track.component = f.create.SourceClip(edit_rate, media_kind='picture')
     # What is the component?
     track.component.length = sequence_length
-
     tape_mob.tracks.append(track)
 
     file_mob = f.create.Composition(mob_type="SourceMob")
@@ -109,18 +120,16 @@ def create_mastermob(f, edit_rate, mob_length = sequence_length, tape_mob_name=u
     file_mob.name = file_mob_name
     file_mob.descriptor.edit_rate = edit_rate # defaults to 25
     file_mob.edit_rate = edit_rate # defaults to 25
-    track = f.create.Track()
 
+    #V1
+    track = f.create.Track()
     track.index = 1
     track.component = f.create.SourceClip(edit_rate, media_kind='picture')
-
     track.component.length = sequence_length
     track.component.track_id = 1
-
     # Sets the start time
     track.component.start_time = sequence_start
     track.component.mob_id = tape_mob.mob_id
-
     file_mob.tracks.append(track)
 
     mob = f.create.Composition(mob_type="MasterMob")
@@ -132,10 +141,9 @@ def create_mastermob(f, edit_rate, mob_length = sequence_length, tape_mob_name=u
     mob.attributes['_COLOR_G'] = convert_8_16bit(clip_color[1])
     mob.attributes['_COLOR_B'] = convert_8_16bit(clip_color[2])
 
+    #V1
     track = f.create.Track()
     track.index = 1
-
-
     clip = f.create.SourceClip(edit_rate, media_kind='picture')
     # this length needed to set out (but seems to make duration double - 25/50 fps related?)
     clip.length = sequence_length
@@ -145,22 +153,25 @@ def create_mastermob(f, edit_rate, mob_length = sequence_length, tape_mob_name=u
     track.component = clip
     # this length needed
     mob.length = sequence_length
-
     mob.tracks.append(track)
+
+    # Add the mobs to file content
     f.content.add_mob(mob)
     f.content.add_mob(file_mob)
     f.content.add_mob(tape_mob)
-    \
     return mob
 
 def writeTallyAVB():
-
+    # Set Bin file path and name
     result_file = os.path.join(result_dir, sequence_name + '.avb')
+    # Duplicate template path
+    if os.path.exists(template_bin_file):
+        binsmith(result_file, template_bin_file)
+        # logger.info('bin duplicated?')
+    else:
+        pass
+        # logger.info(f'{template_bin_file} does not exist')
     with avb.open() as f:
-        #TODO add bin view setting
-        # logger.info(repr(f)) // file object
-        # logger.info(f.__dict__)
-        # logger.info(dir(f))
 
         #first create master mobs for all unique clips
         for key in dictMasterMobInfo.keys():
@@ -171,34 +182,37 @@ def writeTallyAVB():
                 tape_name=u"unknown"
 
             dictMobID[key] = create_mastermob(f, edit_rate, mob_length = sequence_length, tape_mob_name = tape_name, file_mob_name = tape_name, clip_mob_name = source_name , clip_name = source_name, clip_color = dictMasterMobInfo[key][1])
-        # logger.info(dictMobID)
+        # Composition Mob created first
         comp_mob = f.create.Composition(mob_type="CompositionMob")
-
         comp_mob.name = sequence_name   
         comp_mob.edit_rate = edit_rate # otherwise defaults to 25
+
+        # Add color to sequence (only Avid seems to read this)
         comp_mob.attributes = f.create.Attributes()
         comp_mob.attributes['_COLOR_R'] = 60000
         comp_mob.attributes['_COLOR_G'] = 24000
         comp_mob.attributes['_COLOR_B'] = 12000
 
-        # timecode track
+        # TIMECODE track ---
         track = f.create.Track()
         track.index = 1
         track.component = f.create.Timecode(edit_rate, media_kind='timecode')
+
         # Sequence start timecode set here
         track.component.start = sequence_start
         track.component.fps = edit_rate # otherwise defaults to 25
         # set this length???
-        track.component.length = sequence_length
+        track.component.length = sequence_length   
         comp_mob.tracks.append(track)
 
-        # V1
+        # V1 Track ----
         track = f.create.Track()
         track.index = 1
         track.attributes = f.create.Attributes()
         track.attributes['_COMMENT'] = 'SRC'
         sequence = f.create.Sequence(edit_rate, media_kind='picture')
 
+        # Add clips to comp_mob
         clip_position = 0
         for i, event in enumerate(events["clips"]):
             clip_start = event['TIME']
@@ -232,16 +246,15 @@ def writeTallyAVB():
         # We do need this filler for some reason.
         sequence.components.append(f.create.Filler(edit_rate, media_kind='picture'))
         track.component = sequence
-        comp_mob.tracks.append(track)
 
+        comp_mob.tracks.append(track)
         comp_mob.length = sequence.length
 
-        # V2
+        # V2 - TRACK ----
         track = f.create.Track()
         track.index = 2
         track.attributes = f.create.Attributes()
         track.attributes['_COMMENT'] = 'PGM'
-
 
         sequence = f.create.Sequence(edit_rate, media_kind='picture')
 
@@ -274,11 +287,12 @@ def writeTallyAVB():
             clip.length = clip_length
             # this is that clip appended to the sequence
             sequence.components.append(clip)
+            
             clip_position += clip_length
         
         # We do need this filler for some reason.
         sequence.components.append(f.create.Filler(edit_rate, media_kind='picture'))
-        track.component = sequence
+        track.component = sequence 
         comp_mob.tracks.append(track)
 
         comp_mob.length = sequence.length
@@ -315,9 +329,12 @@ def writeTallyAVB():
         f.write(result_file)
 
     # binlock.main("LockText", result_file)
-            
+
+# TODO move this so it is a __main__ function
+
 try:
     writeTallyAVB()
     logger.info('AVB success')
 except Exception as e:
     logger.error(repr(e))
+

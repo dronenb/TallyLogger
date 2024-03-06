@@ -4,7 +4,7 @@ import json
 import os
 import logging
 from datetime import datetime
-from utils import frames_to_TC, msToFrames, msToHMS, convert_8_16bit
+from utils.converters import frames_to_TC, msToFrames, msToHMS, convert_8_16bit
 
 ## NB - this is called by the tally-timer index.js with argument (events)
 ## NOW has master mobs = sequence length created and used 

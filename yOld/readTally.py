@@ -1,11 +1,12 @@
 import asyncio
 from tslumd import UmdReceiver
-from utils import secondsSinceMidnight, msSinceMidnight
+from utils.converters import secondsSinceMidnight, msSinceMidnight
 import datetime
 from getTapeData import getTapeData
 from keyboard import add_hotkey, wait, call_later
 import sys
 
+# NB - ABANDONED as it was not as good as tally-timer
 # TODO readTally can just run indefinitely and log the switcher
 # ALTHOUGH tally-timer may be better as it accepts keypresses
 # and could populate an HTML page?
