@@ -38,8 +38,10 @@ logging.basicConfig(filename=os.path.join(result_dir, 'error.log'), level=loggin
 logger=logging.getLogger(__name__)
 
 logger.info("Started AVB\n")
+# logger.info(events)
+# logger.info(dictMasterMobInfo)
 template_bin_file = os.path.join(os.path.dirname(os.path.dirname(result_dir)), '_templates/_template.avb')
-
+# logger.info(template_bin_file)
 
 # g=open(os.path.join(result_dir, 'test_events' + '.txt'), "w")
 # g.write(str(events))
@@ -71,14 +73,14 @@ sequence_length = sequence_end - sequence_start
 
 def binsmith(file_path, template_path=None):
     command_line_args = [file_path]
-
+    # logger.info(msg=f'binsmith: {file_path} - template: {template_path}' )
     if template_path:
         command_line_args.extend(['-t', template_path])
 
     try:
         subprocess.run([sys.executable, 'utils/binsmith.py'] + command_line_args, check=True)
     except subprocess.CalledProcessError as e:
-        logger.error(f"Error: {e}")
+        logger.error(f"Binsmith Error: {e}")
 
 # Example usage:
 # binsmith('my_new_bin.avb', 'path/to/template.avb')
@@ -166,11 +168,12 @@ def writeTallyAVB():
     result_file = os.path.join(result_dir, sequence_name + '.avb')
     # Duplicate template path
     if os.path.exists(template_bin_file):
+        # logger.info(f'binsmith: {result_file} - {template_bin_file}')
         binsmith(result_file, template_bin_file)
         # logger.info('bin duplicated?')
     else:
         pass
-        # logger.info(f'{template_bin_file} does not exist')
+        logger.info(f'{template_bin_file} does not exist')
     with avb.open() as f:
 
         #first create master mobs for all unique clips
@@ -331,7 +334,6 @@ def writeTallyAVB():
     # binlock.main("LockText", result_file)
 
 # TODO move this so it is a __main__ function
-
 try:
     writeTallyAVB()
     logger.info('AVB success')

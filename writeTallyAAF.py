@@ -38,6 +38,7 @@ logger=logging.getLogger(__name__)
 
 
 logger.info("Started AAF")
+# logger.info(events)
 
 # g=open(os.path.join(result_dir, 'test_events' + '.txt'), "w")
 # g.write(str(events))

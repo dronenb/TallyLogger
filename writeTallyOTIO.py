@@ -39,6 +39,7 @@ logger=logging.getLogger(__name__)
 
 
 logger.info("Started OTIO")
+# logger.info(msg=events)
 
 # g=open(os.path.join(result_dir, 'test_events' + '.txt'), "w")
 # g.write(str(events))
@@ -96,7 +97,7 @@ def writeTallyOTIO():
                 duration=otio.opentime.RationalTime(sequence_length, edit_rate)
             )
         )
-        logger.info(master_mob)
+        # logger.info(msg=master_mob)
         dictMobID[key] = master_mob
     for i in range(1,3): # needs to be one more than tracks required
 
