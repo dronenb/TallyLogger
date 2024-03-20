@@ -1,0 +1,11 @@
+body { padding-top: 10px; }
+.table tbody tr.highlight td {
+    background-color: #ddd;
+  }
+.mdTxtInput {
+    width:5em;
+   }
+.smTxtInput {
+    width:4em;
+   }
+.top-buffer { margin-top:5px; }

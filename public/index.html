@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- <link rel="stylesheet" href="style.css"> -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UDP Data Table</title>
+  	<!-- Add jQuery library -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/localforage@1.9.0/dist/localforage.min.js"></script> -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="client.js"></script>
+
+</head>
+<body> 
+  <div class="container">
+    <ul class="nav nav-pills">
+      <li class="active"><a data-toggle="pill" href="#home">Home</a></li>
+      <li><a data-toggle="pill" href="#menu1">Menu 1</a></li>
+      <li><a data-toggle="pill" href="#menu2">Menu 2</a></li>
+      <li><a data-toggle="pill" href="#menu3">Menu 3</a></li>
+    </ul>
+  </div>
+  <div class="container flex">
+    <div class="tab-content">
+      <div id="home" class="tab-pane fade in active">
+        <div class="d-flex justify-content-center">
+          <div class="col-sm-12 top-buffer">
+            <input type="button" class="btn btn-light btn-sm" data-toggle="button" aria-pressed="false" autocomplete="off" id="btn2" value="OUTPUT">      
+            <input type="button" class="btn btn-light btn-sm" data-toggle="button" aria-pressed="false" autocomplete="off" id="btn3" value="OUTPUT and RESET">      
+            <input type="button" class="btn btn-light btn-sm" data-toggle="button" aria-pressed="false" autocomplete="off" id="btn4" value="UDP OFF">      
+            <input type="button" class="btn btn-light btn-sm" data-toggle="button" aria-pressed="false" autocomplete="off" id="btn5" value="TCP OFF">      
+            <input type="button" class="btn btn-light btn-sm" data-toggle="button" aria-pressed="false" autocomplete="off" id="clearTable" value="Clear Table">      
+            <input type="button" class="btn btn-light btn-sm" data-toggle="button" aria-pressed="false" autocomplete="off" id="getLogs" value="Reload SQL">      
+          </div>
+          <div class="col-sm-12 top-buffer">
+            <label for="listenPort" class="control-label" >Listen Port</label>
+            <input type="text" class="smTxtInput" id="listenPort" value="9910" />
+
+            <label for="listenIP" class="control-label" >Listen IP</label>
+            <input type="text" class="mdTxtInput" id="listenIP" value="127.0.0.1" />
+            
+            <label for="logStartTime" class="control-label" >Log Start</label>
+            <input type="text" class="mdTxtInput"id="logStartTime" name="logStartTime" />
+
+            <label class="control-label" for="logEndTime">Log End</label>
+            <input type="text" class="mdTxtInput" id="logEndTime" name="logEndTime" />
+
+            <label class="control-label" for="frameRateInput">Frame Rate</label>
+            <input type="text" class="smTxtInput" id="frameRateInput" />
+          </div>
+        </div>
+
+        <div class="row top-buffer">
+          <div class="col-sm-12">
+            <table id="dataTable" class="table table-bordered table-hover table-striped">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>UDP Text</th>
+                  <th>TCP Text</th>
+                  <th>SQL Source</th>
+                  <th>SQL TapeName</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      
+      <div id="menu1" class="tab-pane">
+        <h3>Menu 1</h3>
+        <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+      </div>
+      <div id="menu2" class="tab-pane">
+        <h3>Menu 2</h3>
+        <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam.</p>
+      </div>
+      <div id="menu3" class="tab-pane">
+        <h3>Menu 3</h3>
+        <p>Eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>
+      </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+
+
+  const socket = io(); // HTTP connection
+  // A reusable function to handle data
+  function handleData(eventType, data) {
+    const table = $('#dataTable tbody');
+    const row = $('<tr>').prependTo(table);
+    const timeCodeCell = $('<td>').addClass('timecode').text(data.TIMECODE).appendTo(row);
+
+    // Initialize empty cells that may be filled based on the event type
+    const udpDataCell = $('<td>').appendTo(row);
+    const tcpDataCell = $('<td>').appendTo(row);
+
+    // Add two more cells for potential future use or to maintain table structure
+    $('<td>').appendTo(row);
+    $('<td>').appendTo(row);
+
+    // Decide where to place the data based on the eventType
+    if (eventType.startsWith('udpData')) {
+      udpDataCell.text(data.TEXT);
+    } else if (eventType.startsWith('tcpData')) {
+      tcpDataCell.text(data.TEXT);
+    }
+
+    if (eventType.includes('reset')) {
+      timeCodeCell.css('background', 'pink');
+    } else if (eventType.includes('info') || eventType.includes('start')) {
+      timeCodeCell.css('background', 'yellow');
+    }
+
+    // Adjust time inputs based on type
+    if (eventType.includes('start') || eventType.includes('reset')) {
+      $('#logStartTime').val(data.TIMECODE.substring(0, 8));
+    } else {
+      $('#logEndTime').val(data.TIMECODE.substring(0, 8));
+    }
+  }
+
+  // Consolidate socket event handling
+  const eventTypes = ['udpData', 'tcpData', 'udpData-reset', 'tcpData-reset', 'udpData-info', 'tcpData-info', 'udpData-start', 'tcpData-start'];
+  eventTypes.forEach(eventType => {
+    socket.on(eventType, data => {
+      handleData(eventType, data);
+    });
+  });
+
+ 
+</script>
+
+    
+</body>
+</html>
