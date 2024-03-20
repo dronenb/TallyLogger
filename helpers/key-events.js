@@ -1,3 +1,4 @@
+const tallyLogManager = require('./tallyLogManager');
 const { getTallyEvents } = require('./sqlite');
 
 async function handleExit() {
@@ -36,7 +37,7 @@ function setupKeyEvents(stdin, io, msSinceMidnight, frameRate, timedOutput) {
       console.log('\n\nINFO: got "keypress"', key);
   
       if (key && key.ctrl && key.name == 'c') {
-        if(tallyLog['clips'].length > 0){
+        if(tallyLogManager.getClips.length > 0){
           console.log('\n\nINFO: writing AAF/AVB/OTIO files and -- EXITING -- TallyLog\n\n');
           timedOutput(true);
           // Exit as control-c
@@ -51,7 +52,7 @@ function setupKeyEvents(stdin, io, msSinceMidnight, frameRate, timedOutput) {
       }
   
       if (key && key.ctrl && key.name == "p") {
-        if(tallyLog['clips'].length > 0){
+        if(tallyLogManager.getClips.length > 0){
           console.log('\n\nINFO: writing AAF/AVB/OTIO files and -- RESETTING -- tallyLog\n\n');
           // This is for AAF write at the current point and reset
           timedOutput(true);
@@ -59,7 +60,7 @@ function setupKeyEvents(stdin, io, msSinceMidnight, frameRate, timedOutput) {
       }
   
       if (key && key.ctrl && key.name == "o") {
-        if(tallyLog['clips'].length > 0){
+        if(tallyLogManager.getClips.length > 0){
           console.log('\n\nINFO: writing AAF/AVB/OTIO files -- WITHOUT resetting -- tallyLog\n\n');
           timedOutput(false);
         }

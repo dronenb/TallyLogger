@@ -8,21 +8,23 @@ const jspack = require('jspack').jspack;
 
 const { setupKeyEvents } = require('./helpers/key-events');
 const { setupHTTP } = require('./helpers/http-server');
-const { setupTapeNameSQL, setupEventSQL, setupFakePGM } = require('./helpers/sqlite');
+const { setupTapeNameSQL, setupEventSQL, setupFakePGM, emptyEventSQL } = require('./helpers/sqlite');
 const { parseCSVFile, tapeNameData } = require('./helpers/csv-parser');
 const { Index, parse, msSinceMidnight } = require('./helpers/tally-timer');
 const { setTimer, resetTimer, timedOutput } = require('./helpers/timer');
+const tallyLogManager = require('./helpers/tallyLogManager');
 
 // ... Other constant definitions ...
 
-
-// global.tallyLog.start = msSinceMidnight();
+// Find out where this is used
 global.logStartTime = new Date().toISOString();
 
 // This is where events are stored to pass to AAF
 // TODO - change to database?
 const now = msSinceMidnight();
-global.tallyLog ={'start' : now, 'end' : now, 'clips' : []}; 
+tallyLogManager.setStartTime(now);
+tallyLogManager.setEndTime(now);
+tallyLogManager.clearClips();
 
 // ... Timer setup ...
 console.log('initially setting the timeout timer')

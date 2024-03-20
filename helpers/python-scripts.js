@@ -32,7 +32,33 @@ function writeToAVB(data)	{
 	const strTapeInfo = JSON.stringify(uniqueLabelsToColors(data));
 	console.log('output to AVB file:\n')
 
-	const pythonProcess = spawn('python3',[file_path, strData, strTapeInfo, config.paths.avbFilePath, frameRate]);
+	// const pythonProcess = spawn('python3',[file_path, strData, strTapeInfo, config.paths.avbFilePath, frameRate]);
+	try {
+        const pythonProcess = spawn('python3', [file_path, strData, strTapeInfo, config.paths.avbFilePath, frameRate]);
+
+        pythonProcess.stdout.on('data', (data) => {
+            console.log(`stdout: ${data}`);
+        });
+
+        pythonProcess.stderr.on('data', (data) => {
+            console.error(`stderr: ${data}`);
+        });
+
+        pythonProcess.on('error', (error) => {
+            console.error(`Failed to start subprocess: ${error}`);
+        });
+
+        pythonProcess.on('close', (code) => {
+            if (code !== 0) {
+                console.log(`Python script exited with code ${code}`);
+            } else {
+                console.log('Python script executed successfully.');
+            }
+        });
+    } catch (error) {
+        console.error(`An error occurred in writeToAVB function: ${error.message}`);
+    }
+
 }
 
 function writeToOTIO(data)	{

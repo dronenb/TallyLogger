@@ -1,4 +1,5 @@
 const { io, msToTimecode } = require('../config');
+const tallyLogManager = require('./tallyLogManager');
 const jspack = require('jspack').jspack;
 
 
@@ -27,10 +28,10 @@ var parse = function(data, protocol) { // protocol is udpData tcpData sqlData
 	const now = new Date().toISOString();
 	if (data.length > 12) {
 		// console.log(data);
-		tallyobj = {};
+		tallyObj = {};
 		var cursor = 0;
-		tallyobj.TIME = msSinceMidnight();
-		tallyobj.TIMECODE = msToTimecode(tallyobj.TIME, frameRate)
+		tallyObj.TIME = msSinceMidnight();
+		tallyObj.TIMECODE = msToTimecode(tallyObj.TIME, frameRate)
 		//Message Format
 		const _PBC = 2 		//2 bytes = 16 bits 
 							// Packet Byte Count of following packet
@@ -55,49 +56,49 @@ var parse = function(data, protocol) { // protocol is udpData tcpData sqlData
 							// Control Data: (CONTROL bit 15 is set to 1)  Not defined in this version of protocol. 
 
 		// skipping the unneeded tally entries
-		tallyobj.PBC = jspack.Unpack( "<H", data, cursor);
-		// console.log('PBC: ' + tallyobj.PBC); // 14 seems to be program
+		tallyObj.PBC = jspack.Unpack( "<H", data, cursor);
+		// console.log('PBC: ' + tallyObj.PBC); // 14 seems to be program
 		cursor += _PBC;
-		tallyobj.VER = jspack.Unpack( "<B", data, cursor);
-		// console.log('VER: ' + tallyobj.VER);
+		tallyObj.VER = jspack.Unpack( "<B", data, cursor);
+		// console.log('VER: ' + tallyObj.VER);
 		cursor += _VER;
-		tallyobj.FLAGS = jspack.Unpack( "<B", data, cursor);
-		// console.log('FLAGS: ' + tallyobj.FLAGS); // 0 seems to be default
+		tallyObj.FLAGS = jspack.Unpack( "<B", data, cursor);
+		// console.log('FLAGS: ' + tallyObj.FLAGS); // 0 seems to be default
 		cursor += _FLAGS;
-		tallyobj.SCREEN = jspack.Unpack( "<H", data, cursor);
-		// console.log('SCREEN: ' + tallyobj.SCREEN); // Screen that tally is sent to
+		tallyObj.SCREEN = jspack.Unpack( "<H", data, cursor);
+		// console.log('SCREEN: ' + tallyObj.SCREEN); // Screen that tally is sent to
 		cursor += _SCREEN;
-		tallyobj.INDEX = jspack.Unpack( "<H", data, cursor);
-		// console.log('INDEX: ' +tallyobj.INDEX); // Index - can be used for AUX busses??
+		tallyObj.INDEX = jspack.Unpack( "<H", data, cursor);
+		// console.log('INDEX: ' +tallyObj.INDEX); // Index - can be used for AUX busses??
 		cursor += _INDEX;
-		tallyobj.CONTROL = jspack.Unpack( "<H", data, cursor);
-		// console.log('CONTROL: ' + tallyobj.CONTROL); // 0, 192, 197 - seems to refer to brightness
+		tallyObj.CONTROL = jspack.Unpack( "<H", data, cursor);
+		// console.log('CONTROL: ' + tallyObj.CONTROL); // 0, 192, 197 - seems to refer to brightness
 		cursor += _CONTROL;
 
 		var LENGTH = jspack.Unpack( "<H", data, cursor)
 		// console.log(LENGTH); // 4 ?
 		cursor += _LENGTH;
 
-		tallyobj.TEXT = jspack.Unpack( "s".repeat(LENGTH), data, cursor);
+		tallyObj.TEXT = jspack.Unpack( "s".repeat(LENGTH), data, cursor);
 
-		if (tallyobj.TEXT != undefined) {
-			tallyobj.TEXT = tallyobj.TEXT.join("")
-            if (io) {  // Check if global.io is defined
-                io.emit(protocol, tallyobj);
+		if (tallyObj.TEXT != undefined) {
+			tallyObj.TEXT = tallyObj.TEXT.join("")
+            if (io) {  // Check if io is defined
+                io.emit(protocol, tallyObj);
             }
 			else{
 				console.log('socket.io does not exist')
 			}
+			tallyLogManager.addClip(tallyObj);
 
-			global.tallyLog['clips'].push(tallyobj); // moving this to database
-			db.run(`INSERT into tally_events (time, text, pbc, ver, flags, screen, control, indx, msg) VALUES ("${now}", "${tallyobj.TEXT}","${tallyobj.PBC}","${tallyobj.VER}","${tallyobj.FLAGS}","${tallyobj.SCREEN}","${tallyobj.CONTROL}", "${tallyobj.INDEX}", ?)`, data, function(err) {
+			db.run(`INSERT into tally_events (time, text, pbc, ver, flags, screen, control, indx, msg) VALUES ("${now}", "${tallyObj.TEXT}","${tallyObj.PBC}","${tallyObj.VER}","${tallyObj.FLAGS}","${tallyObj.SCREEN}","${tallyObj.CONTROL}", "${tallyObj.INDEX}", ?)`, data, function(err) {
 				if (err) {
 					console.log('error inserting into DB');
 					return console.log(err.message);
 				}
 			  });
-			//   console.log(tallyobj);
-			//   console.log(tallyobj.PBC);
+			//   console.log(tallyObj);
+			//   console.log(tallyObj.PBC);
 			};
 	}
 

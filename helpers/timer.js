@@ -1,7 +1,8 @@
+// timer.js
+// This does the timed or triggered output to AAF/AVB/OTIO
 const { io, msToTimecode } = require('../config');
-
+const tallyLogManager = require('./tallyLogManager');
 const pythonScripts = require('./python-scripts');
-
 const { msSinceMidnight } = require('./tally-timer')
 
 let timeToOutputId = null;
@@ -30,19 +31,19 @@ function timedOutput(reset = false, timed = false){
 	text_message = 'Files created.';
 	// this is for AAF/AVB/OTIO write at current point and reset
 	// last switch is end of sequence (i.e. that event is NOT included)
-	let lastElement = tallyLog['clips'].pop();
-	if (lastElement){
-		tallyLog.end = lastElement['TIME'];
+	let lastElement = tallyLogManager.popLastClip();
+	if (lastElement){		
+		tallyLogManager.setEndTime(lastElement['TIME']);
 	}
 	else{
-		tallyLog.end = msToTimecode(msSinceMidnight());
+		tallyLogManager.setEndTime(msToTimecode(msSinceMidnight()));
 	}
-	// console.log(tallyLog);
+	// console.log(getClips());
 	// Use map to transform the clips array to just what is needed/expected
 	let simplifiedData = {
-		start: tallyLog.start,
-		end: tallyLog.end,
-		clips: tallyLog.clips.map(clip => ({
+		start: tallyLogManager.getStartTime(),
+		end: tallyLogManager.getEndTime(),
+		clips: tallyLogManager.getClips().map(clip => ({
 		TIME: clip.TIME,
 		TEXT: clip.TEXT
 		}))
@@ -53,10 +54,10 @@ function timedOutput(reset = false, timed = false){
 	pythonScripts.writeToOTIO(simplifiedData);
 	if (reset){
 		// Reset tallylog
-		tallyLog.start = tallyLog.end;
-		tallyLog.end = 0;
-		tallyLog['clips']=[];
-		tallyLog['clips'].push(lastElement);
+		tallyLogManager.setStartTime(tallyLogManager.getEndTime);
+		tallyLogManager.setEndTime(0);
+		tallyLogManager.clearClips;
+		tallyLogManager.addClip(lastElement);
 		text_message = 'Files created and log reset'
 		io.emit('udpData-reset', {TIMECODE: msToTimecode(msSinceMidnight(),frameRate), TEXT: text_message });
 	}

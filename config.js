@@ -10,9 +10,9 @@ const msToTimecode = require('ms-to-timecode');
 const config = {
     httpConnected: false,
     paths: {
-        aafFilePath: "/Users/trevoraylward/Documents/GitHub/_TallyToAAF/aaf/",
-        avbFilePath: "/Users/trevoraylward/Documents/Avid Projects/NBC Paris 24/results/",
-        otioFilePath: "/Users/trevoraylward/Documents/GitHub/_TallyToAAF/otio/"
+        aafFilePath: JSON.stringify("/Users/trevoraylward/Documents/GitHub/_TallyToAAF/aaf/"),
+        avbFilePath: JSON.stringify("/Users/trevoraylward/Documents/Avid Projects/NBC Paris 24/results/"),
+        otioFilePath: JSON.stringify("/Users/trevoraylward/Documents/GitHub/_TallyToAAF/otio/")
     },
     ports: {
         htmlPort: 3000,

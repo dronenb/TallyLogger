@@ -182,6 +182,21 @@ function getCSV() {
   }); // return promise
 } // end getCSV
 
+function emptyEventSQL(){
+const query = `TRUNCATE TABLE tally_events`;
+
+db.all(query, [], (err, rows) => {
+
+  if (err) {
+    console.error('Error truncating the tally_events table:', err.message);
+  } else {
+    console.log('tally_events truncated');
+  }
+});
+
+
+}
+
 function setupEventSQL(index=0){
   // SQLite commands to be executed in serial
   const commands = [
@@ -262,4 +277,11 @@ function dateTimeToTimecode(d, fps){
 }
 
 
-module.exports = { setupTapeNameSQL, setupEventSQL, getTallyEvents, timecodeToDatetime, dateTimeToTimecode };
+module.exports = { 
+  setupTapeNameSQL, 
+  setupEventSQL, 
+  getTallyEvents, 
+  timecodeToDatetime, 
+  dateTimeToTimecode,
+  emptyEventSQL
+};
