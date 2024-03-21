@@ -1,30 +1,20 @@
-const { config, opener, bodyParser, app, htmlServer, io, msToTimecode } = require('./config');
-global.frameRate = 50;
+const { config, opener, bodyParser, app, htmlServer, io, msToTimecode, msSinceMidnight, frameRate } = require('./config');
+
 // Use `config` object to access configurations
 console.log(config.ports.htmlPort);
-
-const fs = require('fs');
-const jspack = require('jspack').jspack;
 
 const { setupKeyEvents } = require('./helpers/key-events');
 const { setupHTTP } = require('./helpers/http-server');
 const { setupTapeNameSQL, setupEventSQL, setupFakePGM, emptyEventSQL } = require('./helpers/sqlite');
 const { parseCSVFile, tapeNameData } = require('./helpers/csv-parser');
-const { Index, parse, msSinceMidnight } = require('./helpers/tally-timer');
-const { setTimer, resetTimer, timedOutput } = require('./helpers/timer');
-const tallyLogManager = require('./helpers/tallyLogManager');
+const { setTimer, timedOutput } = require('./helpers/timer');
+
 
 // ... Other constant definitions ...
 
 // Find out where this is used
 global.logStartTime = new Date().toISOString();
 
-// This is where events are stored to pass to AAF
-// TODO - change to database?
-const now = msSinceMidnight();
-tallyLogManager.setStartTime(now);
-tallyLogManager.setEndTime(now);
-tallyLogManager.clearClips();
 
 // ... Timer setup ...
 console.log('initially setting the timeout timer')

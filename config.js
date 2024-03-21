@@ -5,6 +5,7 @@ const http = require('http');
 const opener = require('opener');
 const socketIO = require('socket.io');
 const msToTimecode = require('ms-to-timecode');
+const frameRate = 50;
 
 // Define configurations as an object instead of using global variables
 const config = {
@@ -29,6 +30,17 @@ const app = express();
 const htmlServer = http.createServer(app);
 const io = socketIO(htmlServer);
 
+function msSinceMidnight(d=null){
+	// calculate the number of milliseconds since midnight
+	if (d !== null) {
+		var e = new Date(d)
+	}	
+	else{
+		var e = new Date()
+	}
+	return (e.getTime() - e.setHours(0,0,0,0))
+}
+
 // Export configurations and modules
 module.exports = {
     config,
@@ -39,5 +51,7 @@ module.exports = {
     opener,
     htmlServer,
     io,
-    msToTimecode
+    msToTimecode,
+    msSinceMidnight,
+    frameRate
 };

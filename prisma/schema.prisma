@@ -1,3 +1,5 @@
+// schema.prisma
+
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
@@ -10,5 +12,51 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:../data/tally_log.sqlite"
+  url      = "file:../data/tally_log.db"
+}
+
+// TSLMessage to hold the individual messages against a timestamp
+model TSLMessage {
+  id          Int      @id @default(autoincrement())
+  RAWDATA     Bytes
+  TIMESTAMP   DateTime
+  TIME        Int? 
+  TIMECODE    String?   // should this always be calculated?
+      // Optional parsed fields
+  PBC         Int?      // 2 bytes = 16 bits - Packet Byte Count of following packet
+  VER         Int?      // VERsion
+  FLAGS       Int?      // FLAGS (8 bit): Defined as follows:   
+							          // Bit 0: Clear for ASCII based strings in packet, set for Unicode UTF-16LE  
+                        // Bit 1: If set, data after SCREEN is screen control data (SCONTROL) 
+                        // – otherwise  it’s display message data (DMSG) 
+                        // Bit 2-7: Reserved (clear to 0) 
+  SCREEN     Int?       // Primary index for use where each screen entity would have display indices (defined below) starting from 0. 
+							          // Index 0xFFFF is reserved as a “Broadcast” to all screens. If not used, set to 0. 
+  INDEX      Int?       // INDEX (16 bit): The 0 based address of the display, up to 65534 (0xFFFE). 
+							          // Address 0xFFFF is reserved as a “Broadcast” address to all displays. 
+  CONTROL    Int?       // CONTROL (16 bit): Display control and tally data as follows:  
+                        // Bit 0-1:  RH Tally Lamp state Bit 2-3:  Text Tally state Bit 4-5:  LH Tally Lamp state  Bit 6-7:  Brightness value (range 0-3)  Bit 8-14: Reserved (clear to 0) 
+                        // Bit 15:  Control Data: following data to be interpreted as Control data rather  than Display data when set to 1.  
+                        // 2 Bit Tally values are: 0 = OFF, 1 = RED, 2 = GREEN, 3 = AMBER. 
+  LENGTH     Int?       // Display Data: (CONTROL bit 15 is cleared to 0)  
+                        // LENGTH (16 bit): Byte count of following text.  
+                        // TEXT: UMD text, format defined by FLAGS byte.  
+                        // Control Data: (CONTROL bit 15 is set to 1)  Not defined in this version of protocol. 
+  TEXT       String?
+  // Future expansion?
+  //deviceType String?  // e.g., PGM, PVW, Aux1, etc.
+
+  // Future expansion: Consider linking to Source if parsing becomes more common
+  // sourceId   Int?
+  // source     Source? @relation(fields: [sourceId], references: [id])
+}
+
+model Source {
+  id          Int    @id @default(autoincrement())
+  label       String @unique
+  tapeName       String  @default("TapeNamenot set") // Handled programmatically
+  sourceChannel  String   @default("Source Channel not set")
+  clipColorRGB   String     @default ("[135, 206, 250]") // Light Sky Blue
+  // Future expansion: Relations to TSLMessages if needed
+  // tslMessages TSLMessage[]
 }
