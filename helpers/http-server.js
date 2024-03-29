@@ -5,7 +5,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient({
   // log: ['query', 'info', 'warn', 'error'],
 });
-const { getTallyEvents, getTallyEventsWithSource } = require('./TallyLogService');
+const { getTallyEvents } = require('./TallyLogService');
 const { timedOutput } = require('./timer.js')
 
 function setupHTTP() {
@@ -98,7 +98,7 @@ function setupHTTP() {
         console.log('Client request to output only');
         console.log('\n\nINFO: writing AAF/AVB/OTIO files -- WITHOUT resetting -- tallyLog\n\n')
 
-        getTallyEventsWithSource(startTime, endTime)
+        getTallyEvents(startTime, endTime)
           .then(data => { // data.startTime, data.endTime, data.events
             // Process data
             timedOutput(reset = false, timed = false, data = data);
@@ -114,8 +114,9 @@ function setupHTTP() {
       if (btn == "btn3") {
         console.log('Client request to output and reset');
         console.log('\n\nINFO: writing AAF/AVB/OTIO files and -- RESETTING -- tallyLog\n\n')
-        getTallyEventsWithSource(startTime, endTime)
-          .then(events => {
+        getTallyEvents(startTime, endTime)
+          .then(data => {
+            // console.log(events);
             // Process events
             // console.log(`Retrieved ${events.length} events.`);
             timedOutput(reset = true, timed = false, data = data);

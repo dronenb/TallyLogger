@@ -3,85 +3,68 @@
 
 const { uniqueLabelsToColors } = require('./color-mapper');
 const { config, frameRate } = require('../config');
+const spawn = require("child_process").spawn;
 
 /* CALL Python scripts with arguments */
+/* writing it for standard in instead of arguments */
 
 async function writeToAAF(data)	{
 	// console.log('writeToAAF:', data);
 
-	const spawn = require("child_process").spawn;
 	const file_path = "/Users/trevoraylward/Documents/GitHub/TallyLogger/writeTallyAAF.py"
-
-	const strData = JSON.stringify(data);
-	// console.log('data:', data);
-	// console.log('strdata', strData);
-
+	const pythonProcess = spawn('python3', [file_path, config.paths.aafFilePath, frameRate]);
 	const tapeInfo = await uniqueLabelsToColors(data);
-	
-	const strTapeInfo = JSON.stringify(tapeInfo);
-	// console.log('strTapeInfo', strTapeInfo);
 
+	// Convert data to string and write to standard input of the Python process
+	const strData = JSON.stringify({ data, tapeInfo });
+	pythonProcess.stdin.write(strData);
+	pythonProcess.stdin.end();
 
-	console.log('output to AAF file:\n')
-	// console.log(`file_path: ${file_path} strData: ${strData} config.paths.aafFilePath: ${config.paths.aafFilePath} frameRate: ${frameRate}`)
-	const pythonProcess = spawn('python3',[file_path, strData, strTapeInfo, config.paths.aafFilePath, frameRate]);
+	// Handle output and errors
+	pythonProcess.stdout.on('data', (data) => {
+		console.log(`stdout: ${data}`);
+	});
+	pythonProcess.stderr.on('data', (data) => {
+		console.error(`stderr: ${data}`);
+	});
+
 }
 
 async function writeToAVB(data)	{
 
-	const spawn = require("child_process").spawn;
 	const file_path = "/Users/trevoraylward/Documents/GitHub/TallyLogger/writeTallyAVB.py"
-
-	const strData = JSON.stringify(data);
-
-
+	const pythonProcess = spawn('python3', [file_path, config.paths.avbFilePath, frameRate]);
 	const tapeInfo = await uniqueLabelsToColors(data);
 	
-	const strTapeInfo = JSON.stringify(tapeInfo);
-	console.log('output to AVB file:\n')
+	// Convert data to string and write to standard input of the Python process
+	const strData = JSON.stringify({ data, tapeInfo });
+	pythonProcess.stdin.write(strData);
+	pythonProcess.stdin.end();
 
-	// const pythonProcess = spawn('python3',[file_path, strData, strTapeInfo, config.paths.avbFilePath, frameRate]);
-	try {
-        const pythonProcess = spawn('python3', [file_path, strData, strTapeInfo, config.paths.avbFilePath, frameRate]);
-
-        pythonProcess.stdout.on('data', (data) => {
-            console.log(`stdout: ${data}`);
-        });
-
-        pythonProcess.stderr.on('data', (data) => {
-            console.error(`stderr: ${data}`);
-        });
-
-        pythonProcess.on('error', (error) => {
-            console.error(`Failed to start subprocess: ${error}`);
-        });
-
-        pythonProcess.on('close', (code) => {
-            if (code !== 0) {
-                console.log(`Python script exited with code ${code}`);
-            } else {
-                console.log('Python script executed successfully.');
-            }
-        });
-    } catch (error) {
-        console.error(`An error occurred in writeToAVB function: ${error.message}`);
-    }
+	// Handle output and errors
+	pythonProcess.stdout.on('data', (data) => {
+		console.log(`stdout: ${data}`);
+	});
+	pythonProcess.stderr.on('data', (data) => {
+		console.error(`stderr: ${data}`);
+	});
 
 }
 
 async function writeToOTIO(data)	{
 
-	const spawn = require("child_process").spawn;
 	const file_path = "/Users/trevoraylward/Documents/GitHub/TallyLogger/writeTallyOTIO.py"
-
-	const strData = JSON.stringify(data);
-
+	const pythonProcess = spawn('python3',[file_path, config.paths.otioFilePath, frameRate]);
 	const tapeInfo = await uniqueLabelsToColors(data);
 	
-	const strTapeInfo = JSON.stringify(tapeInfo);
-	console.log('output to OTIO file:\n')
+	// Handle output and errors
+	pythonProcess.stdout.on('data', (data) => {
+		console.log(`stdout: ${data}`);
+	});
+	pythonProcess.stderr.on('data', (data) => {
+		console.error(`stderr: ${data}`);
+	});
 
-	const pythonProcess = spawn('python3',[file_path, strData, strTapeInfo, config.paths.otioFilePath, frameRate]);
 }
 
 module.exports = { writeToAAF, writeToAVB, writeToOTIO };

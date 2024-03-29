@@ -15,12 +15,16 @@ comments = True
 frames = 0
 tc = ""
 
-if len(sys.argv) > 1:
-    # Data from tally-timer when this script is called from index.js
-    events = json.loads(sys.argv[1]) 
-    dictMasterMobInfo = json.loads(sys.argv[2])
-    result_dir = json.loads(sys.argv[3]) 
-    edit_rate = json.loads(sys.argv[4])
+# Check if there is data on stdin
+if not sys.stdin.isatty():
+    input_str = sys.stdin.read()
+    data = json.loads(input_str)
+    # NB data is events {start, end, clips[{TIME, TEXT}]}
+    # NB tapeInfo is {TEXT: [TapeName, colorRGB], etc}
+    events = data['data']
+    dictMasterMobInfo = data['tapeInfo']
+    result_dir = json.loads(sys.argv[1]) 
+    edit_rate = json.loads(sys.argv[2])
 
     sequence_name = 'TallyLog ' + msToHMS(events["start"]) + ' - ' +msToHMS(events["end"])
     file_name = result_dir + sequence_name + '.otio'

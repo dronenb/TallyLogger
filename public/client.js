@@ -4,7 +4,6 @@
  */
 
 // currently the /api/colors isn't working
-// added the index.html stuff at the bottom
 
 $(document).ready(function () { // Once page is loaded...
   fetch('/api/framerate')
@@ -395,7 +394,7 @@ function handleData(eventType, data) {
   }
 
   // Adjust time inputs based on type
-  if (eventType.includes('start') || eventType.includes('reset')) {
+  if (eventType.includes('start')) {
     // set start time
     $('#logStartTime').val(data.TIMECODE.substring(0, 8));
     $('#logStartTime').data('datetime', data.TIMESTAMP); 
@@ -403,11 +402,19 @@ function handleData(eventType, data) {
       $('#logEndTime').val(data.TIMECODE.substring(0, 8));
       $('#logEndTime').data('datetime', data.TIMESTAMP); 
     }
-  } else {
+  } 
+  else if(eventType.includes('reset')){
+    console.log(data);
+    // checking this out....
+    $('#logStartTime').val(data.NEW_START_TIMECODE.substring(0, 8));
+    $('#logStartTime').data('datetime', data.NEW_START_TIME); 
+    $('#logEndTime').val(data.NEW_START_TIMECODE.substring(0, 8));
+    $('#logEndTime').data('datetime', data.NEW_START_TIME); 
+  }
+  else {
     // set end time
     $('#logEndTime').val(data.TIMECODE.substring(0, 8));
     $('#logEndTime').data('datetime', data.TIMESTAMP);   
-
   }
 }
 

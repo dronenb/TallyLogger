@@ -276,7 +276,9 @@ function validateTallyData(data) {
 }
 
 
-async function getTallyEventsWithSource(startTime, endTime) {
+async function getTallyEvents(startTime, endTime) {
+  console.log(startTime);
+  console.log(endTime);
   try {
     // Step 1: Fetch TSLMessage records
     const messages = await prisma.TSLMessage.findMany({
@@ -286,23 +288,19 @@ async function getTallyEventsWithSource(startTime, endTime) {
           { TIMESTAMP: { lte: endTime } },
         ],
       },
+      select: {
+        TIME: true,
+        TEXT: true,
+        TIMESTAMP: true,
+      },
     });
 
-    // // Step 2: Fetch Source records
-    // const sources = await prisma.source.findMany();
-
-    // // Step 3: Combine the results
-    // const eventsWithSource = messages.map(message => {
-    //   const source = sources.find(s => s.LABEL === message.TEXT);
-    //   return {
-    //     ...message,
-    //     source: source || null, // Include the source object or null if not found
-    //   };
-    // });
     return {
-      events: messages,
-      startTime: startTime,
-      endTime: endTime
+      // NB these names are then used as it passes to python
+      // TODO - figure out how to deal with midnight / keep the date
+      clips: messages,
+      start: msSinceMidnight(startTime),
+      end: msSinceMidnight(endTime)
     };
 
   } catch (err) {
@@ -314,5 +312,5 @@ async function getTallyEventsWithSource(startTime, endTime) {
 
 // Export the singleton instance
 module.exports = {
-    saveTallyMessage,setupTapeNamePrisma,getRgbByColorName, getTallyEventsWithSource
+    saveTallyMessage,setupTapeNamePrisma,getRgbByColorName, getTallyEvents
 };

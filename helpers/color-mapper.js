@@ -5,13 +5,11 @@ const prisma = new PrismaClient({
 });
 
 
-/* assigns tape name and colors to those labels that are unique */
-
-// needs to get tapeNameData from SQL now
-
+/* assigns tape name and colors to those labels that are unique (from PRISMA db) */
+/* any missing tape names use label as tape name and a default grey color */
 
 async function uniqueLabelsToColors(data){
-	// console.log('color-mapper', data); 
+	// console.log('Received data in uniqueLabelsToColors:', data);
 	const array = data['clips'];
 	const start = data['start'];
 	const end = data['end'];
@@ -36,7 +34,7 @@ for (let i = 0; i < uniqueLabels.length; i++) {
 			},
 		});
 		if (!tapeExists) {
-			console.log("----" + uniqueLabels[i] + " has no entry in tapeNameData  ------")
+			// console.log("----" + uniqueLabels[i] + " has no entry in tapeNameData  ------")
 			result[uniqueLabels[i]] = [uniqueLabels[i], [128,128,128]];
 		}
 		else {

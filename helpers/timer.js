@@ -26,37 +26,30 @@ function resetTimer() {
   }
 
 
-
 /* the regular output module*/
 // TODO - figure out how to deal with anything across midnight
-function timedOutput(reset = false, timed = false, data = data){
+async function timedOutput(reset = false, timed = false, data = data){
 	text_message = 'Files created.';
-	let simplifiedData = {
-		start: msSinceMidnight(data.startTime),
-		end: msSinceMidnight(data.endTime),
-		clips: data.events.map(clip => ({
-		TIME: clip.TIME,
-		TEXT: clip.TEXT
-		}))
-	};
-// console.log(simplifiedData);
-	pythonScripts.writeToAAF(simplifiedData);
-	pythonScripts.writeToAVB(simplifiedData);
-	pythonScripts.writeToOTIO(simplifiedData);
-	
-	if (reset){
-		// Set log start time to be previous end time
 
+// console.log(data);
+	pythonScripts.writeToAAF(data);
+	pythonScripts.writeToAVB(data);
+	pythonScripts.writeToOTIO(data);
+	
+	const newStartTime = data.clips[data.clips.length -1].TIMESTAMP;
+	if (reset){
 		text_message = 'Files created and log reset'
-		io.emit('udpData-reset', {TIMECODE: msToTimecode(msSinceMidnight(),frameRate), TEXT: text_message });
+		io.emit('udpData-reset', {TIMECODE: await msToTimecode(msSinceMidnight(),frameRate), TEXT: text_message, NEW_START_TIME: newStartTime, NEW_START_TIMECODE: await msToTimecode(msSinceMidnight(newStartTime), frameRate) });
 	}
 	else if (timed){
+
 		text_message = 'Files auto-created'
-		io.emit('udpData-info', {TIMECODE: msToTimecode(msSinceMidnight(),frameRate), TEXT: text_message });
+		io.emit('udpData-info', {TIMECODE: await msToTimecode(msSinceMidnight(),frameRate), TEXT: text_message });
 	}
 	else{
+
 		text_message = 'Files manually created'
-		io.emit('udpData-info', {TIMECODE: msToTimecode(msSinceMidnight(),frameRate), TEXT: text_message });
+		io.emit('udpData-info', {TIMECODE: await msToTimecode(msSinceMidnight(),frameRate), TEXT: text_message });
 	}
 	// Reset the timer after running the task
 	resetTimer();
