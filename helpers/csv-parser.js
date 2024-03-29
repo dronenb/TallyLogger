@@ -67,6 +67,7 @@ function parseCSVFile(filePath) {
         data[element]['ColorValue'] = colorsRGB[data[element]['ColorName']];
       }
       tapeNameData = data;
+      return data;
       // console.log('tape name data:');
       // console.log(tapeNameData);
 

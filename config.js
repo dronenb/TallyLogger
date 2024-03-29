@@ -5,7 +5,11 @@ const http = require('http');
 const opener = require('opener');
 const socketIO = require('socket.io');
 const msToTimecode = require('ms-to-timecode');
+const fs = require('fs');
+const path = require('path');
+
 const frameRate = 50;
+
 
 // Define configurations as an object instead of using global variables
 const config = {
@@ -20,7 +24,7 @@ const config = {
         listenPort: 9910,
         listenIP: '127.0.0.1'
     },
-    tapeNameFilePath: "/Users/trevoraylward/Documents/GitHub/_TallyToAAF/LUT/TallyTapeName.csv",
+    tapeNameFilePath: "/Users/trevoraylward/Documents/GitHub/TallyLogger/data/TallyTapeName.csv",
 };
 
 // Initializing Express app and HTTP server here might not be best for a config file.
@@ -53,5 +57,7 @@ module.exports = {
     io,
     msToTimecode,
     msSinceMidnight,
-    frameRate
+    frameRate,
+    fs,
+    path,
 };

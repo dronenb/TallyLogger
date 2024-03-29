@@ -1,29 +1,49 @@
+// color-mapper.js
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient({
+  // log: ['query', 'info', 'warn', 'error'],
+});
+
+
 /* assigns tape name and colors to those labels that are unique */
-function uniqueLabelsToColors(data){
+
+// needs to get tapeNameData from SQL now
+
+
+async function uniqueLabelsToColors(data){
+	// console.log('color-mapper', data); 
 	const array = data['clips'];
 	const start = data['start'];
 	const end = data['end'];
 	const key = 'TEXT';
+
 	// create unique array of source
 	const uniqueLabels = [...new Set(array.map(item => item.TEXT))].sort();
 	// Add PGM (which is hopefully unique!)
 	uniqueLabels.push('PGM');
+	
+	// Fetch Source records
+	// const tapeNameData = await prisma.source.findMany();
 	const result = {};
+	// console.log(tapeNameData); // check this is valid
 
 for (let i = 0; i < uniqueLabels.length; i++) {
-	// console.log(tapeNameData); // check this is valid
 	try{
 	// Find source in unique labels and add correct Color Value from tape_name_file_path
-	let j = tapeNameData.findIndex(({Source}) => Source === uniqueLabels[i]);
-	// console.log(`uniqueLabels[i]: ${uniqueLabels[i]}`);
-	// console.log(`index: ${tapeNameData}`);
-	if (j<0){
-		console.log("----" + uniqueLabels[i] + " has no entry in tapeNameData  ------")
+		const tapeExists = await prisma.source.findUnique({
+			where: {
+			label: uniqueLabels[i],
+			},
+		});
+		if (!tapeExists) {
+			console.log("----" + uniqueLabels[i] + " has no entry in tapeNameData  ------")
+			result[uniqueLabels[i]] = [uniqueLabels[i], [128,128,128]];
 		}
-	else {
-		result[uniqueLabels[i]] = [tapeNameData[j]['TapeName'], tapeNameData[j]['ColorValue']];
+		else {
+			// console.log(tapeExists.clipColorRGB);
+			result[uniqueLabels[i]] = [tapeExists.tapeName, tapeExists.clipColorRGB.split(',').map(Number)];
+			}
 		}
-	}
 	catch (error){
 		console.log("Error color-mapper: ", error.message);
 	}

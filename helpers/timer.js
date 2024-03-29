@@ -1,9 +1,8 @@
 // timer.js
 // This does the timed or triggered output to AAF/AVB/OTIO
-const { io, msToTimecode } = require('../config');
-const tallyLogManager = require('./tallyLogManager');
+const { io, msToTimecode, msSinceMidnight } = require('../config');
 const pythonScripts = require('./python-scripts');
-const { msSinceMidnight } = require('./tally-timer')
+const { frameRate } = require('../config');
 
 let timeToOutputId = null;
 
@@ -26,38 +25,28 @@ function resetTimer() {
 	setTimer(); // Resets the timer
   }
 
+
+
 /* the regular output module*/
-function timedOutput(reset = false, timed = false){
+// TODO - figure out how to deal with anything across midnight
+function timedOutput(reset = false, timed = false, data = data){
 	text_message = 'Files created.';
-	// this is for AAF/AVB/OTIO write at current point and reset
-	// last switch is end of sequence (i.e. that event is NOT included)
-	let lastElement = tallyLogManager.popLastClip();
-	if (lastElement){		
-		tallyLogManager.setEndTime(lastElement['TIME']);
-	}
-	else{
-		tallyLogManager.setEndTime(msToTimecode(msSinceMidnight()));
-	}
-	// console.log(getClips());
-	// Use map to transform the clips array to just what is needed/expected
 	let simplifiedData = {
-		start: tallyLogManager.getStartTime(),
-		end: tallyLogManager.getEndTime(),
-		clips: tallyLogManager.getClips().map(clip => ({
+		start: msSinceMidnight(data.startTime),
+		end: msSinceMidnight(data.endTime),
+		clips: data.events.map(clip => ({
 		TIME: clip.TIME,
 		TEXT: clip.TEXT
 		}))
 	};
-
+// console.log(simplifiedData);
 	pythonScripts.writeToAAF(simplifiedData);
 	pythonScripts.writeToAVB(simplifiedData);
 	pythonScripts.writeToOTIO(simplifiedData);
+	
 	if (reset){
-		// Reset tallylog
-		tallyLogManager.setStartTime(tallyLogManager.getEndTime);
-		tallyLogManager.setEndTime(0);
-		tallyLogManager.clearClips;
-		tallyLogManager.addClip(lastElement);
+		// Set log start time to be previous end time
+
 		text_message = 'Files created and log reset'
 		io.emit('udpData-reset', {TIMECODE: msToTimecode(msSinceMidnight(),frameRate), TEXT: text_message });
 	}
@@ -71,6 +60,7 @@ function timedOutput(reset = false, timed = false){
 	}
 	// Reset the timer after running the task
 	resetTimer();
+
 }
 
 module.exports = { setTimer, resetTimer, timedOutput };

@@ -1,4 +1,5 @@
 // tallyLogManager.js
+// before using SQLite database
 
 let tallyLog = { start: '0', end: '0', clips: [] };
 

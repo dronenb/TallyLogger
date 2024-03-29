@@ -37,8 +37,12 @@ model TSLMessage {
   CONTROL    Int?       // CONTROL (16 bit): Display control and tally data as follows:  
                         // Bit 0-1:  RH Tally Lamp state Bit 2-3:  Text Tally state Bit 4-5:  LH Tally Lamp state  Bit 6-7:  Brightness value (range 0-3)  Bit 8-14: Reserved (clear to 0) 
                         // Bit 15:  Control Data: following data to be interpreted as Control data rather  than Display data when set to 1.  
-                        // 2 Bit Tally values are: 0 = OFF, 1 = RED, 2 = GREEN, 3 = AMBER. 
-  LENGTH     Int?       // Display Data: (CONTROL bit 15 is cleared to 0)  
+                        // 2 Bit Tally values are: 0 = OFF, 1 = RED, 2 = GREEN, 3 = AMBER.
+  RH_TALLY     String?  
+  TEXT_TALLY   String?  
+  LH_TALLY     String?  
+  BRIGHTNESS   Int?      // Brightness value (range 0-3) 
+  LENGTH       Int?     // Display Data: (CONTROL bit 15 is cleared to 0)  
                         // LENGTH (16 bit): Byte count of following text.  
                         // TEXT: UMD text, format defined by FLAGS byte.  
                         // Control Data: (CONTROL bit 15 is set to 1)  Not defined in this version of protocol. 
@@ -55,8 +59,15 @@ model Source {
   id          Int    @id @default(autoincrement())
   label       String @unique
   tapeName       String  @default("TapeNamenot set") // Handled programmatically
-  sourceChannel  String   @default("Source Channel not set")
-  clipColorRGB   String     @default ("[135, 206, 250]") // Light Sky Blue
+  sourceChannel  String  @default("Source Channel not set")
+  clipColorName  String  @default ("LightSkyBlue")
+  clipColorRGB   String  @default ("[135, 206, 250]") // Light Sky Blue
   // Future expansion: Relations to TSLMessages if needed
   // tslMessages TSLMessage[]
+}
+
+model Color {
+  id       Int    @id @default(autoincrement())
+  name     String @unique
+  rgb      String // Stored as "R,G,B"
 }

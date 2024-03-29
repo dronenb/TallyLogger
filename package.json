@@ -36,5 +36,8 @@
   "devDependencies": {
     "@types/node": "^20.11.30",
     "typescript": "^5.4.2"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
   }
 }

@@ -15,7 +15,10 @@ frames = 0
 tc = ""
 
 if len(sys.argv) > 1:
-    # Data from tally-timer when this script is called from index.js
+    # Data from tally-timer when this script is called from python-scripts.js
+    # 0 - file_path, 1 - strData, 2 - strTapeInfo, 3 - config.paths.aafFilePath, 4 -frameRate
+    # NB strData is events {start, end, clips[{TIME, TEXT}]}
+    # NB dictMasterMobInfo is {TEXT: [TapeName, colorRGB], etc}
     events = json.loads(sys.argv[1]) 
     dictMasterMobInfo = json.loads(sys.argv[2])
     result_dir = json.loads(sys.argv[3]) 

@@ -4,6 +4,7 @@
   <!-- <link rel="stylesheet" href="style.css"> -->
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.css">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>UDP Data Table</title>
@@ -11,6 +12,8 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <!-- <script src="https://cdn.jsdelivr.net/npm/localforage@1.9.0/dist/localforage.min.js"></script> -->
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
   <script type="text/javascript" src="client.js"></script>
 
 </head>
@@ -18,7 +21,7 @@
   <div class="container">
     <ul class="nav nav-pills">
       <li class="active"><a data-toggle="pill" href="#home">Home</a></li>
-      <li><a data-toggle="pill" href="#menu1">Menu 1</a></li>
+      <li><a data-toggle="pill" href="#menu1">Tape Names</a></li>
       <li><a data-toggle="pill" href="#menu2">Menu 2</a></li>
       <li><a data-toggle="pill" href="#menu3">Menu 3</a></li>
     </ul>
@@ -42,12 +45,16 @@
             <label for="listenIP" class="control-label" >Listen IP</label>
             <input type="text" class="mdTxtInput" id="listenIP" value="127.0.0.1" />
             
-            <label for="logStartTime" class="control-label" >Log Start</label>
-            <input type="text" class="mdTxtInput"id="logStartTime" name="logStartTime" />
-
+            <label class="control-label" for="logStartTime">Log Start</label>
+            <input type="text" class="mdTxtInput" id="logStartTime" name="logStartTime" data-datetime=""/>
+            
             <label class="control-label" for="logEndTime">Log End</label>
-            <input type="text" class="mdTxtInput" id="logEndTime" name="logEndTime" />
+            <input type="text" class="mdTxtInput" id="logEndTime" name="logEndTime" data-datetime=""/>
+          </div>
 
+          <div class="col-sm-12 top-buffer">
+            <input type="text" class="p-2 bg-light border" id="lastOutputTime" name="lastOutputTime" data-datetime="" value="empty" readonly>
+            
             <label class="control-label" for="frameRateInput">Frame Rate</label>
             <input type="text" class="smTxtInput" id="frameRateInput" />
           </div>
@@ -61,6 +68,9 @@
                   <th>Time</th>
                   <th>UDP Text</th>
                   <th>TCP Text</th>
+                  <th>LH Tally</th>                  
+                  <th>Text Tally</th>
+                  <th>RH Tally</th>
                   <th>SQL Source</th>
                   <th>SQL TapeName</th>
                 </tr>
@@ -70,10 +80,28 @@
           </div>
         </div>
       </div>
-      
+      <!-- This is the Tape Name Data --------- -->
       <div id="menu1" class="tab-pane">
-        <h3>Menu 1</h3>
-        <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+          <div class="row top-buffer">
+            <div class="col-sm-12">
+              <div id="tapeNameData">
+                <table id="myDataTable" class="display" width="100%">
+                  <thead>
+                    <tr>
+                      <th>Label</th>
+                      <th>Tape</th>
+                      <th>Color</th>
+                      <th>RGB</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- DataTables will dynamically fill this part -->
+                  </tbody>
+                </table>
+              </div>
+              
+            </div>
+          </div>
       </div>
       <div id="menu2" class="tab-pane">
         <h3>Menu 2</h3>
@@ -85,57 +113,11 @@
       </div>
   </div>
 
-  <script src="/socket.io/socket.io.js"></script>
   <script>
 
 
-  const socket = io(); // HTTP connection
-  // A reusable function to handle data
-  function handleData(eventType, data) {
-    const table = $('#dataTable tbody');
-    const row = $('<tr>').prependTo(table);
-    const timeCodeCell = $('<td>').addClass('timecode').text(data.TIMECODE).appendTo(row);
 
-    // Initialize empty cells that may be filled based on the event type
-    const udpDataCell = $('<td>').appendTo(row);
-    const tcpDataCell = $('<td>').appendTo(row);
-
-    // Add two more cells for potential future use or to maintain table structure
-    $('<td>').appendTo(row);
-    $('<td>').appendTo(row);
-
-    // Decide where to place the data based on the eventType
-    if (eventType.startsWith('udpData')) {
-      udpDataCell.text(data.TEXT);
-    } else if (eventType.startsWith('tcpData')) {
-      tcpDataCell.text(data.TEXT);
-    }
-
-    if (eventType.includes('reset')) {
-      timeCodeCell.css('background', 'pink');
-    } else if (eventType.includes('info') || eventType.includes('start')) {
-      timeCodeCell.css('background', 'yellow');
-    }
-
-    // Adjust time inputs based on type
-    if (eventType.includes('start') || eventType.includes('reset')) {
-      $('#logStartTime').val(data.TIMECODE.substring(0, 8));
-    } else {
-      $('#logEndTime').val(data.TIMECODE.substring(0, 8));
-    }
-  }
-
-  // Consolidate socket event handling
-  const eventTypes = ['udpData', 'tcpData', 'udpData-reset', 'tcpData-reset', 'udpData-info', 'tcpData-info', 'udpData-start', 'tcpData-start'];
-  eventTypes.forEach(eventType => {
-    socket.on(eventType, data => {
-      handleData(eventType, data);
-    });
-  });
-
- 
 </script>
 
-    
 </body>
 </html>

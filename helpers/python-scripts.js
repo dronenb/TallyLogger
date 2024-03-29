@@ -1,19 +1,25 @@
+// python-scripts.js
+// call to python scripts that work with pyAAF and pyAVB libraries
+
 const { uniqueLabelsToColors } = require('./color-mapper');
-const { config } = require('../config');
+const { config, frameRate } = require('../config');
 
 /* CALL Python scripts with arguments */
 
-function writeToAAF(data)	{
+async function writeToAAF(data)	{
+	// console.log('writeToAAF:', data);
 
 	const spawn = require("child_process").spawn;
 	const file_path = "/Users/trevoraylward/Documents/GitHub/TallyLogger/writeTallyAAF.py"
 
 	const strData = JSON.stringify(data);
-	// console.log(data);
-	// console.log(strData);
+	// console.log('data:', data);
+	// console.log('strdata', strData);
+
+	const tapeInfo = await uniqueLabelsToColors(data);
 	
-	const strTapeInfo = JSON.stringify(uniqueLabelsToColors(data));
-	// console.log(strTapeInfo);
+	const strTapeInfo = JSON.stringify(tapeInfo);
+	// console.log('strTapeInfo', strTapeInfo);
 
 
 	console.log('output to AAF file:\n')
@@ -21,7 +27,7 @@ function writeToAAF(data)	{
 	const pythonProcess = spawn('python3',[file_path, strData, strTapeInfo, config.paths.aafFilePath, frameRate]);
 }
 
-function writeToAVB(data)	{
+async function writeToAVB(data)	{
 
 	const spawn = require("child_process").spawn;
 	const file_path = "/Users/trevoraylward/Documents/GitHub/TallyLogger/writeTallyAVB.py"
@@ -29,7 +35,9 @@ function writeToAVB(data)	{
 	const strData = JSON.stringify(data);
 
 
-	const strTapeInfo = JSON.stringify(uniqueLabelsToColors(data));
+	const tapeInfo = await uniqueLabelsToColors(data);
+	
+	const strTapeInfo = JSON.stringify(tapeInfo);
 	console.log('output to AVB file:\n')
 
 	// const pythonProcess = spawn('python3',[file_path, strData, strTapeInfo, config.paths.avbFilePath, frameRate]);
@@ -61,14 +69,16 @@ function writeToAVB(data)	{
 
 }
 
-function writeToOTIO(data)	{
+async function writeToOTIO(data)	{
 
 	const spawn = require("child_process").spawn;
 	const file_path = "/Users/trevoraylward/Documents/GitHub/TallyLogger/writeTallyOTIO.py"
 
 	const strData = JSON.stringify(data);
 
-	const strTapeInfo = JSON.stringify(uniqueLabelsToColors(data));
+	const tapeInfo = await uniqueLabelsToColors(data);
+	
+	const strTapeInfo = JSON.stringify(tapeInfo);
 	console.log('output to OTIO file:\n')
 
 	const pythonProcess = spawn('python3',[file_path, strData, strTapeInfo, config.paths.otioFilePath, frameRate]);
