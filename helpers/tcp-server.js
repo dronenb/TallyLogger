@@ -1,17 +1,22 @@
-const { config, express, bodyParser, app, htmlServer, io, msToTimecode } = require('../config');
+const { config } = require('../config');
 const net = require('net');
 const bsplit = require('buffer-split');
-const { parse } = require('./tally-timer');
+const { saveTallyMessage } = require('./TallyLogService');
+var tcpServer = null;
+
+function closeTCP(){
+  tcpServer.close();
+}
 
 function setupTCP() {
   console.log('setting up tcp server')
-  global.tcpServer = net.createServer((socket) => {
+  tcpServer = net.createServer((socket) => {
     socket.on('data', (data) => {
       const delim = Buffer.from([0xfe, 0x02]);
       const spl_data = bsplit(data, delim);
       spl_data.forEach((dataPiece) => {
         if (dataPiece.length > 0) {
-          parse(dataPiece, 'tcpData');
+          saveTallyMessage(dataPiece, 'tcpData');
         }
       });
     });
@@ -32,4 +37,4 @@ function setupTCP() {
   });
 }
 
-module.exports = { setupTCP };
+module.exports = { setupTCP, closeTCP };

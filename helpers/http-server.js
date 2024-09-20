@@ -1,6 +1,6 @@
-const { config, express, bodyParser, app, io } = require('../config');
-const { setupUDP } = require('./udp-server');
-const { setupTCP } = require('./tcp-server');
+const { config, express, bodyParser, app, io, frameRate } = require('../config');
+const { setupUDP, closeUDP } = require('./udp-server');
+const { setupTCP, closeTCP } = require('./tcp-server');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient({
   // log: ['query', 'info', 'warn', 'error'],
@@ -40,7 +40,7 @@ function setupHTTP() {
  
   // Endpoint to get the current frameRate
   app.get('/api/framerate', (req, res) => {
-    res.json({ frameRate: global.frameRate });
+    res.json({ frameRate: frameRate });
   });
 
   // Endpoint to set a new frameRate
@@ -85,12 +85,12 @@ function setupHTTP() {
       if (btn == "btn1") {
         if (val == 'on') { //if button is clicked
           // console.log('Client request to start the tally logging');
-          serverResponse.status = 'Currnently not working yet....Restarted the Tally Logging.';
+          serverResponse.status = 'Currently not working yet....Restarted the Tally Logging.';
           res.send(serverResponse); //send response to the server
         }
         else { //if button is unclicked, turn off the leds
           // console.log('Client request to stop the tally logging');
-          serverResponse.status = 'Currnently not working yet.... Stopped the tally logging';
+          serverResponse.status = 'Currently not working yet.... Stopped the tally logging';
           res.send(serverResponse); //send response to the server
         }
       }
@@ -139,7 +139,7 @@ function setupHTTP() {
           res.send(serverResponse); //send response to the server
         }
         else {
-          udpServer.close();
+          closeUDP();
           console.log('UDP port closed');
         }
       }
@@ -154,7 +154,7 @@ function setupHTTP() {
           res.send(serverResponse); //send response to the server
         }
         else {
-          tcpServer.close();
+          closeTCP();
           console.log('TCP port closed');
         }
       }

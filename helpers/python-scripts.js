@@ -11,7 +11,7 @@ const spawn = require("child_process").spawn;
 async function writeToAAF(data)	{
 	// console.log('writeToAAF:', data);
 
-	const file_path = "/Users/trevoraylward/Documents/GitHub/TallyLogger/writeTallyAAF.py"
+	const file_path = "./writeTallyAAF.py"
 	const pythonProcess = spawn('python3', [file_path, config.paths.aafFilePath, frameRate]);
 	const tapeInfo = await uniqueLabelsToColors(data);
 
@@ -32,7 +32,7 @@ async function writeToAAF(data)	{
 
 async function writeToAVB(data)	{
 
-	const file_path = "/Users/trevoraylward/Documents/GitHub/TallyLogger/writeTallyAVB.py"
+	const file_path = "./writeTallyAVB.py"
 	const pythonProcess = spawn('python3', [file_path, config.paths.avbFilePath, frameRate]);
 	const tapeInfo = await uniqueLabelsToColors(data);
 	
@@ -53,7 +53,7 @@ async function writeToAVB(data)	{
 
 async function writeToOTIO(data)	{
 
-	const file_path = "/Users/trevoraylward/Documents/GitHub/TallyLogger/writeTallyOTIO.py"
+	const file_path = "./writeTallyOTIO.py"
 	const pythonProcess = spawn('python3',[file_path, config.paths.otioFilePath, frameRate]);
 	const tapeInfo = await uniqueLabelsToColors(data);
 	

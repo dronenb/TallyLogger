@@ -1,12 +1,18 @@
 const { config } = require('../config');
 const dgram = require('node:dgram');
 const bsplit = require('buffer-split');
-const { parse } = require('./tally-timer');
+const { saveTallyMessage } = require('./TallyLogService');
+
+let udpServer = null;
+
+function closeUDP(){
+  udpServer.close();
+}
 
 function setupUDP() {
   console.log('setting up udp server')
 
-  global.udpServer = dgram.createSocket('udp4');
+  udpServer = dgram.createSocket('udp4');
 
   udpServer.on('message', (data) => {
     // console.log(data);
@@ -14,7 +20,7 @@ function setupUDP() {
     const spl_data = bsplit(data, delim);
     spl_data.forEach((dataPiece) => {
       if (dataPiece.length > 0) {
-        parse(dataPiece, protocol='udpData');
+        saveTallyMessage(dataPiece, protocol='udpData');
       }
     });
   });
@@ -30,4 +36,4 @@ function setupUDP() {
   udpServer.bind(config.ports.listenPort);
 }
 
-module.exports = { setupUDP };
+module.exports = { setupUDP, closeUDP };

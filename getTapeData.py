@@ -2,7 +2,7 @@ import sys
 import csv
 
 # CSV storing tally source / tape name / clip color name info that can be updated daily
-file_name = "/Users/trevoraylward/Documents/GitHub/TallyLogger/TallyTapeName.csv"
+file_name = "./TallyTapeName.csv"
 
 # colors stored as RGB for simplicity and multiplied when used for AAF 
 # these color names are in the google sheet dropcown https://docs.google.com/spreadsheets/d/19bTWGm3IQSVTuSmjjq_Sb0HAf60WVpnEWwxvxRDyl74/edit#gid=0

@@ -7,6 +7,8 @@ const socketIO = require('socket.io');
 const msToTimecode = require('ms-to-timecode');
 const fs = require('fs');
 const path = require('path');
+const Timecode = require('smpte-timecode')
+
 
 const frameRate = 50;
 
@@ -15,16 +17,16 @@ const frameRate = 50;
 const config = {
     httpConnected: false,
     paths: {
-        aafFilePath: JSON.stringify("/Users/trevoraylward/Documents/GitHub/_TallyToAAF/aaf/"),
-        avbFilePath: JSON.stringify("/Users/trevoraylward/Documents/Avid Projects/NBC Paris 24/results/"),
-        otioFilePath: JSON.stringify("/Users/trevoraylward/Documents/GitHub/_TallyToAAF/otio/")
+        aafFilePath: JSON.stringify("../_TallyToAAF/aaf/"),
+        avbFilePath: JSON.stringify("../_TallyToAAF/avb/"),
+        otioFilePath: JSON.stringify("../_TallyToAAF/otio/")
     },
     ports: {
         htmlPort: 3000,
         listenPort: 9910,
         listenIP: '127.0.0.1'
     },
-    tapeNameFilePath: "/Users/trevoraylward/Documents/GitHub/TallyLogger/data/TallyTapeName.csv",
+    tapeNameFilePath: "./data/TallyTapeName.csv",
 };
 
 // Initializing Express app and HTTP server here might not be best for a config file.
@@ -45,6 +47,17 @@ function msSinceMidnight(d=null){
 	return (e.getTime() - e.setHours(0,0,0,0))
 }
 
+function timecodeToDatetime(timecode, fps){
+  const t = Timecode(timecode, fps=25, false);
+  var s = t.frameCount/fps;
+  return new Date(s * 1000);
+}
+
+function dateTimeToTimecode(d, fps){
+  const t = Timecode(d, fps=25, false);
+  return t;
+}
+
 // Export configurations and modules
 module.exports = {
     config,
@@ -60,4 +73,6 @@ module.exports = {
     frameRate,
     fs,
     path,
+    timecodeToDatetime, 
+    dateTimeToTimecode,
 };

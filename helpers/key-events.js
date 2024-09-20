@@ -1,34 +1,24 @@
-const tallyLogManager = require('./tallyLogManager');
-const { getTallyEvents } = require('./sqlite');
+// key-events.js
+// written for terminal based shortcuts - now not really working because of client-side nature of log start and end times
+
 
 async function handleExit() {
-  global.logEndTime = new Date().toISOString();
+  logEndTime = new Date().toISOString();
   try {
-    await new Promise((resolve, reject) => {
-      getTallyEvents(logStartTime, logEndTime, (err, result) => {
-        if (err) reject(err);
-        else {
-          console.log("Clean up done:", result);
-          resolve(result);
-        }
-      });
-    });
-    // console.log("Cleanup completed. Exiting now.");
-    db.close();
-    // console.log('database closed');
+    // await new Promise((resolve, reject) => {
+      console.log('this would be a function to do when exiting');
+    // });
     process.stdin.pause();
     process.exit(0);
   } catch (error) {
     console.error("An error occurred during cleanup:", error);
-    db.close();
-    console.log('database closed');
     process.stdin.pause();
     process.exit(1);
   }
 }
 
 // Key Events are from keyboard interaction
-function setupKeyEvents(stdin, io, msSinceMidnight, frameRate, timedOutput) {
+function setupKeyEvents(stdin, timedOutput) {
     const keypress = require('keypress');
   
     keypress(stdin);
@@ -37,33 +27,20 @@ function setupKeyEvents(stdin, io, msSinceMidnight, frameRate, timedOutput) {
       console.log('\n\nINFO: got "keypress"', key);
   
       if (key && key.ctrl && key.name == 'c') {
-        if(tallyLogManager.getClips.length > 0){
-          console.log('\n\nINFO: writing AAF/AVB/OTIO files and -- EXITING -- TallyLog\n\n');
-          timedOutput(true);
           // Exit as control-c
           handleExit()
-        }
-        else {
-          db.close();
-          console.log('database closed');
-          process.stdin.pause();
-          process.exit(0);
-        }
       }
   
       if (key && key.ctrl && key.name == "p") {
-        if(tallyLogManager.getClips.length > 0){
-          console.log('\n\nINFO: writing AAF/AVB/OTIO files and -- RESETTING -- tallyLog\n\n');
+          // console.log('\n\nINFO: writing AAF/AVB/OTIO files and -- RESETTING -- tallyLog\n\n');
           // This is for AAF write at the current point and reset
-          timedOutput(true);
-        }
+          // timedOutput(true);
       }
   
       if (key && key.ctrl && key.name == "o") {
-        if(tallyLogManager.getClips.length > 0){
-          console.log('\n\nINFO: writing AAF/AVB/OTIO files -- WITHOUT resetting -- tallyLog\n\n');
-          timedOutput(false);
-        }
+          // console.log('\n\nINFO: writing AAF/AVB/OTIO files -- WITHOUT resetting -- tallyLog\n\n');
+          // This is for AAF write at the current point and not reset
+          // timedOutput(false);
       }
     });
   

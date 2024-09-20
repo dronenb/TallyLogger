@@ -11,18 +11,15 @@ $(document).ready(function () { // Once page is loaded...
     .then(data => {
       $('#frameRateInput').val(data.frameRate);
     });
-}); // end commands after page fully loaded
 
-$(document).ready(function() {
   // Fetch color options from the server
   $.get('/api/colors', function(colors) {
       // Generate the options string
       const colorOptions = colors.map(color => `<option value="${color.name}">${color.name}</option>`).join('');
       initializeDataTable(colorOptions); // Pass the colorOptions to the DataTable initialization
   });
-});
 
-$(document).ready(function() {
+  // set initial start and end times - currently UTC
   const now = new Date().toISOString();
   $('#logStartTime').data('datetime', now);   
   $('#logEndTime').data('datetime', now);   

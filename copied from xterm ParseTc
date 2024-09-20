@@ -1,0 +1,53 @@
+#!/bin/bash
+
+## GOT THIS WORKING
+# up to a point - getting correct start timecode is tricky, frame rates and drop-frame not handled
+
+# VARIABLES
+
+# lut array to hold path to growing files
+
+lut=( ["01"]="/Users/trevoraylward/Downloads/Sample for OTIO/FND_T2_C0361.MXF" ["02"]="/Users/trevoraylward/Downloads/Sample for OTIO/25i Football with BURN IN inc Fields.mov" ["03"]="/Users/trevoraylward/Downloads/Sample for OTIO/FIFA2022_Emblem_BREAKBUMP_5sec_1080_50p_HDR.mxf")
+
+# associative array to hold various options
+
+declare -A opt
+opt[handles]=3.2
+opt[default_dur]=5
+
+# testing array to hold dummy EasyClip inputs to parse
+
+# these are on the form of NN-TC1[-TC2-FREETEXT]
+# where NN is source (typically relates to multiviewer pip number
+# TC1 is in point to clip from
+# TC2 is out point (optional)
+# FREETEXT is for naming/info (optional)
+
+# could come from various inputs
+# my use case is from watch folder of empty folders - the folder name is the conduit
+
+testing=( "01-162241-162242-1 second from LUT 1" "01-162244-no TC2 LUT 1" "02-010012-010013-1 second from LUT 2" "02-010015-no TC2 from LUT 2" "03-000003-000004-1 second from LUT 3" "03-000004-no TC2 from LUT 3" )
+
+# helper functions
+
+parse() {
+    # get source, timecodes, text from EasyClip filename
+    local input="$1"
+    local nn tc1 tc2 txt
+
+    # Try to match the pattern with two timecodes
+    local result=$(echo "$input" | sed -n 's/^\([0-9]\{1,3\}\)-\([0-9]\{6\}\)-\([0-9]\{6\}\)-\(.*\)$/\1 \2 \3 \4/p')
+
+    if [ -z "$result" ]; then
+        # Only one timecode present
+        result=$(echo "$input" | sed -n 's/^\([0-9]\{1,3\}\)-\([0-9]\{6\}\)-\(.*\)$/\1 \2 \3/p')
+        read nn tc1 txt <<< "$result"
+        tc2="NA" # no timecode out
+    else
+        # Both timecodes present
+        read nn tc1 tc2 txt <<< "$result"
+    fi
+
+    # Output with consistent formatting
+    echo "$nn $tc1 $tc2 $txt"
+}
