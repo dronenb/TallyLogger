@@ -1,6 +1,5 @@
 // config.js
 const express = require('express');
-const bodyParser = require('body-parser');
 const http = require('http');
 const opener = require('opener');
 const socketIO = require('socket.io');
@@ -19,7 +18,8 @@ const config = {
     paths: {
         aafFilePath: JSON.stringify("../_TallyToAAF/aaf/"),
         avbFilePath: JSON.stringify("../_TallyToAAF/avb/"),
-        otioFilePath: JSON.stringify("../_TallyToAAF/otio/")
+        otioFilePath: JSON.stringify("../_TallyToAAF/otio/"),
+        xmlFilePath: JSON.stringify("../_TallyToAAF/xml/")
     },
     ports: {
         htmlPort: 3000,
@@ -62,7 +62,6 @@ function dateTimeToTimecode(d, fps){
 module.exports = {
     config,
     express,
-    bodyParser,
     app,
     http,
     opener,

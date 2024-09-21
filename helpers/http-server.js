@@ -1,4 +1,4 @@
-const { config, express, bodyParser, app, io, frameRate } = require('../config');
+const { config, express, app, io, frameRate } = require('../config');
 const { setupUDP, closeUDP } = require('./udp-server');
 const { setupTCP, closeTCP } = require('./tcp-server');
 const { PrismaClient } = require('@prisma/client');
@@ -11,8 +11,8 @@ const { timedOutput } = require('./timer.js')
 function setupHTTP() {
   app.use(express.static('public')); // Serve static files from public directory
 
-  app.use(bodyParser.urlencoded({ extended: true })); // must come before routing
-  app.use(bodyParser.json()); // this handles any JSON bodies
+  app.use(express.urlencoded({ extended: true })); // must come before routing
+  app.use(express.json()); // this handles any JSON bodies
 
   app.get('/api/tape-data', async (req, res) => {
     try {
