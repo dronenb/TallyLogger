@@ -1,6 +1,5 @@
 // config.js
 const express = require('express');
-const bodyParser = require('body-parser');
 const http = require('http');
 const opener = require('opener');
 const socketIO = require('socket.io');
@@ -63,7 +62,6 @@ function dateTimeToTimecode(d, fps){
 module.exports = {
     config,
     express,
-    bodyParser,
     app,
     http,
     opener,
