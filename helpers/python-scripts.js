@@ -1,6 +1,8 @@
 // python-scripts.js
 // call to python scripts that work with pyAAF and pyAVB libraries
 
+// not sure why I did this for otio?
+
 const { uniqueLabelsToColors } = require('./color-mapper');
 const { config, frameRate } = require('../config');
 const spawn = require("child_process").spawn;
