@@ -62,6 +62,7 @@ model Source {
   sourceChannel  String  @default("Source Channel not set")
   clipColorName  String  @default ("LightSkyBlue")
   clipColorRGB   String  @default ("[135, 206, 250]") // Light Sky Blue
+  clipColorPP    String  @default ("Iris")
   // Future expansion: Relations to TSLMessages if needed
   // tslMessages TSLMessage[]
 }

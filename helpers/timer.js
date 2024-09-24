@@ -29,12 +29,14 @@ function resetTimer() {
 /* the regular output module*/
 // TODO - figure out how to deal with anything across midnight
 async function timedOutput(reset = false, timed = false, data = data){
+
 	text_message = 'Files created.';
 
 // console.log(data);
 	pythonScripts.writeToAAF(data);
 	pythonScripts.writeToAVB(data);
 	pythonScripts.writeToOTIO(data);
+	pythonScripts.writeToXML(data);
 	
 	const newStartTime = data.clips[data.clips.length -1].TIMESTAMP;
 	if (reset){

@@ -1,16 +1,16 @@
-Source,TapeName,ColorName
-C-01,TapeName_C-01,teal
-C-02,TapeName_C-02,teal
-i-25,TapeName_i-25,orange
-i-30,TapeName_i-30,lightPink
-C-05,TapeName_C-05,teal
-C-06,TapeName_C-06,teal
-C-07,TapeName_C-07,paleGreen
-C-08,TapeName_C-08,paleGreen
-C-09,TapeName_C-09,paleGreen
-C-10,TapeName_C-10,paleGreen
-PGM,~pdbMHtn,mediumPurple
-C01-TCP,TapeName_C-01-TCP,teal
-C02-TCP,TapeName_C-02-TCP,teal
-C03-TCP,TapeName_i-25-TCP,orange
-C04-TCP,TapeName_i-30-TCP,lightPink
+Source,TapeName,ColorName, PPColor
+C-01,TapeName_C-01,teal, Teal
+C-02,TapeName_C-02,teal, Teal
+i-25,TapeName_i-25,orange, Orange
+i-30,TapeName_i-30,lightPink, Magenta
+C-05,TapeName_C-05,teal, Teal
+C-06,TapeName_C-06,teal, Teal
+C-07,TapeName_C-07,paleGreen, Forest
+C-08,TapeName_C-08,paleGreen, Forest
+C-09,TapeName_C-09,paleGreen, Forest
+C-10,TapeName_C-10,paleGreen, Forest
+PGM,~pdbMHtn,mediumPurple, Purple
+C01-TCP,TapeName_C-01-TCP,teal, Teal
+C02-TCP,TapeName_C-02-TCP,teal, Teal
+C03-TCP,TapeName_i-25-TCP,orange, Orange
+C04-TCP,TapeName_i-30-TCP,lightPink, Magenta

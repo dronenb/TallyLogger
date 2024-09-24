@@ -113,12 +113,14 @@ async function upsertTape(tape) { // NB updates if exists, inserts if does not e
         tapeName: tape.tape_name,
         clipColorName: tape.color_name,
         clipColorRGB: tape.color_rgb,
+        clipColorPP: tape.color_pp,
       },
       create: {
         label: tape.tally_source,
         tapeName: tape.tape_name,
         clipColorName: tape.color_name,
         clipColorRGB: tape.color_rgb,
+        clipColorPP: tape.color_pp,
       },
     }).catch(err => console.error(`Error upserting tape: ${tape.tally_source}`, err));    
 }
@@ -144,16 +146,17 @@ async function getCSV() {
     const lines = data.split('\n');
     const tapeItemsPromises = lines.slice(1).map(async (line) => { // Use slice(1) to skip headers
       const columns = line.split(',').map(column => column.replace(/\r$/, '').trim());
-      if (columns.length < 3) return null; // Skip invalid lines
+      if (columns.length < 4) return null; // Skip invalid lines
 
-      const [tally_source, tape_name, color_name] = columns;
+      const [tally_source, tape_name, color_name, pp_color] = columns;
       try {
         const rgb = await getRgbByColorName(color_name);
         return {
           tally_source: tally_source.trim(),
           tape_name: tape_name.trim(),
           color_name: color_name.trim(),
-          color_rgb: rgb.toString(), 
+          color_rgb: rgb.toString(),
+          color_pp: pp_color.trim(), 
         };
       } catch (err) {
         console.error(err);
@@ -189,6 +192,7 @@ async function getRgbByColorName(colorName) {
   // Assuming the rgb is stored as a string "R,G,B"
   const rgbArray = color.rgb;  
   // console.log(`RGB for ${colorName}:`, rgbArray);
+  // console.log(rgbArray);
   return rgbArray;
 }
 
@@ -277,8 +281,8 @@ function validateTallyData(data) {
 
 
 async function getTallyEvents(startTime, endTime) {
-  console.log(startTime);
-  console.log(endTime);
+  console.log("start time: ", startTime);
+  console.log("end time: ", endTime);
   try {
     // Step 1: Fetch TSLMessage records
     const messages = await prisma.TSLMessage.findMany({

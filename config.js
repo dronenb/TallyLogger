@@ -16,10 +16,10 @@ const frameRate = 50;
 const config = {
     httpConnected: false,
     paths: {
-        aafFilePath: JSON.stringify("../_TallyToAAF/aaf/"),
-        avbFilePath: JSON.stringify("../_TallyToAAF/avb/"),
-        otioFilePath: JSON.stringify("../_TallyToAAF/otio/"),
-        xmlFilePath: JSON.stringify("../_TallyToAAF/xml/")
+        aafFilePath: JSON.stringify("../_TallyLogExports/aaf/"),
+        avbFilePath: JSON.stringify("../_TallyLogExports/avb/"),
+        otioFilePath: JSON.stringify("../_TallyLogExports/otio/"),
+        xmlFilePath: JSON.stringify("../_TallyLogExports/xml/")
     },
     ports: {
         htmlPort: 3000,

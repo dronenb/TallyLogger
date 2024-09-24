@@ -1,7 +1,9 @@
+// TallyLogger server.js
+
 const { config, opener, htmlServer, io, msToTimecode, msSinceMidnight, frameRate } = require('./config');
 
 // Use `config` object to access configurations
-console.log(config.ports.htmlPort);
+// console.log(config.ports.htmlPort);
 
 const { setupKeyEvents } = require('./helpers/key-events');
 const { setupHTTP } = require('./helpers/http-server');
@@ -17,7 +19,7 @@ const { setTimer, timedOutput } = require('./helpers/timer');
 // console.log('setting up tape name PRISMA::::::::');
 setupTapeNamePrisma();
 // ... Timer setup ...
-console.log('initially setting the timeout timer')
+// console.log('initially setting the timeout timer')
 setTimer();
 
 // ... HTTP server setup ...
@@ -72,17 +74,6 @@ waitForClientOrTimeout.then((message) => {
 // Key event setup
 // console.log('setting up Key Events')
 setupKeyEvents(process.stdin, io, msSinceMidnight, frameRate, timedOutput);
-
-
-
-// setup Fake Event - normally commented out
-// setupFakePGM();
-
-
-// ... Python script execution functions ...
-
-// ... Color mapping ...
-
 
 
 process.stdin.setRawMode(true);

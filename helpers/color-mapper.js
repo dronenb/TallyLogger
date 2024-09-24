@@ -35,11 +35,12 @@ for (let i = 0; i < uniqueLabels.length; i++) {
 		});
 		if (!tapeExists) {
 			// console.log("----" + uniqueLabels[i] + " has no entry in tapeNameData  ------")
-			result[uniqueLabels[i]] = [uniqueLabels[i], [128,128,128]];
+			result[uniqueLabels[i]] = [uniqueLabels[i], [128,128,128],'Iris'];
 		}
 		else {
 			// console.log(tapeExists.clipColorRGB);
-			result[uniqueLabels[i]] = [tapeExists.tapeName, tapeExists.clipColorRGB.split(',').map(Number)];
+			// console.log(tapeExists);
+			result[uniqueLabels[i]] = [tapeExists.tapeName, tapeExists.clipColorRGB.split(',').map(Number,), tapeExists.clipColorPP];
 			}
 		}
 	catch (error){

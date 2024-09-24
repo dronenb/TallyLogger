@@ -29,7 +29,7 @@ function setupUDP() {
     const address = udpServer.address();
     console.log(`UDP server listening ${address.address}:${address.port}`);
     console.log(`from - ${new Date().toLocaleString()}`);
-    console.log('\n\nPress Control+ P to output AAF and - RESET - the Tally capture\n\nControl+ O will - NOT - reset the Tally capture\n\nControl+ C to output AAF and - EXIT - script (e.g., at the end of the night)\n\n');
+    // console.log('\n\nPress Control+ P to output AAF and - RESET - the Tally capture\n\nControl+ O will - NOT - reset the Tally capture\n\nControl+ C to output AAF and - EXIT - script (e.g., at the end of the night)\n\n');
 
   });
 
