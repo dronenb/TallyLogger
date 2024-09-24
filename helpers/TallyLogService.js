@@ -1,6 +1,9 @@
+// helpers/TallyLogService.js
+
 const { io,  msToTimecode, msSinceMidnight, frameRate, fs, path } = require('../config');
 const { PrismaClient } = require('@prisma/client');
 const jspack = require('jspack').jspack; // Unpacks Binary data
+
 const prisma = new PrismaClient({
   // log: ['query', 'info', 'warn', 'error'],
 });
@@ -14,8 +17,10 @@ const prisma = new PrismaClient({
 async function saveTallyMessage(data, protocol){
     const parsedData = parseTallyMessage(data);
     const validationResult = validateTallyData(parsedData);
+
     if (!validationResult.isValid) {
       console.error('Validation errors:', validationResult.errors);
+      return; // Early exit on validation failure
     } else {
       // Proceed with database operation
     prisma.TSLMessage.create({
@@ -38,12 +43,13 @@ async function saveTallyMessage(data, protocol){
 
 function parseTallyMessage(data){
     const now = new Date().toISOString(); // ideally this would be from the TSL emitter
-    let tallyObj = {};
-    tallyObj.TIMESTAMP = now;
-    tallyObj.RAWDATA = data;
-    var cursor = 0;
-    tallyObj.TIME = msSinceMidnight();
-    tallyObj.TIMECODE = msToTimecode(tallyObj.TIME, frameRate)
+    let tallyObj = {
+      TIMESTAMP: now,
+      RAWDATA: data,
+      TIME: msSinceMidnight(),
+      TIMECODE: msToTimecode(msSinceMidnight(), frameRate),
+  };
+    let cursor = 0;
     //Message Format in bytes
     const _PBC = 2 		  //2 bytes = 16 bits - Packet Byte Count of following packet
     const _VER = 1 		  // VERSION (8 bit)
@@ -313,8 +319,11 @@ async function getTallyEvents(startTime, endTime) {
   }
 }
 
-
-// Export the singleton instance
+// Export the functions for use in other modules
 module.exports = {
-    saveTallyMessage,setupTapeNamePrisma,getRgbByColorName, getTallyEvents
+  saveTallyMessage,
+  setupTapeNamePrisma,
+  getRgbByColorName,
+  getTallyEvents,
 };
+

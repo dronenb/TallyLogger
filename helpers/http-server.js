@@ -1,3 +1,8 @@
+// http-server.js
+// This module sets up and configures an HTTP server using Express for handling API requests and serving static content.
+// It includes routes for interacting with a SQLite database via Prisma, handling frame rate settings, managing tally logs, 
+// and controlling UDP and TCP listeners. It also provides endpoints for updating tape metadata, fetching logs, and color management.
+
 const { config, express, app, io, frameRate } = require('../config');
 const { setupUDP, closeUDP } = require('./udp-server');
 const { setupTCP, closeTCP } = require('./tcp-server');
