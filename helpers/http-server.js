@@ -152,7 +152,7 @@ function setupHTTP() {
       udpEnabled: config.enableUDP,
       tcpEnabled: config.enableTCP,
     };
-    console.log('api/button-states response:', response); // debug
+    // console.log('api/button-states response:', response); // debug
     res.json(response);
   });
 
