@@ -18,6 +18,9 @@ const frameRate = 50;
 
 // Configurations for the system, including paths for exported files, ports for HTTP and UDP/TCP listeners
 const config = {
+    enableUDP: true,
+    enableTCP: false,
+    ALLOWED_FRAME_RATES: [23.976, 24, 25, 29.97, 30, 50, 59.94, 60],
     httpConnected: false,
     paths: {
         aafFilePath: JSON.stringify("../_TallyLogExports/aaf/"),

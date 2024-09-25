@@ -141,7 +141,7 @@ const tapeItems = await getCSV();
   for (let tape of tapeItems) {
     await upsertTape(tape);
   }
-  console.log('All tapes have been processed in the database.');
+  // console.log('TallyLogService: All tapes have been processed in the database.');
 }
 
 async function getCSV() {
@@ -287,8 +287,8 @@ function validateTallyData(data) {
 
 
 async function getTallyEvents(startTime, endTime) {
-  console.log("start time: ", startTime);
-  console.log("end time: ", endTime);
+  // console.log("start time: ", startTime);
+  // console.log("end time: ", endTime);
   try {
     // Step 1: Fetch TSLMessage records
     const messages = await prisma.TSLMessage.findMany({

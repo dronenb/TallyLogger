@@ -6,7 +6,7 @@
 
 const { config, opener, htmlServer, io, msToTimecode, msSinceMidnight, frameRate } = require('./config');
 
-// Use `config` object to access configurations
+// Use `config` object to access global variables
 // console.log("config.ports: ", config.ports);
 // console.log("config.paths: ", config.paths);
 
@@ -32,13 +32,21 @@ setTimer();
 // Setup the HTTP server and listen on the configured port
 setupHTTP();
 htmlServer.listen(config.ports.htmlPort, () => {
-  console.log(`HTTP Server listening on port ${config.ports.htmlPort}`);
+  console.log(`Server.JS: HTTP Server listening on port ${config.ports.htmlPort}`);
 });
 
 let clientConnected = false;
+let firstRun = true;
 
 io.on('connection', (socket) => {
+  console.log('Client connected');
   clientConnected = true;
+  // Check if the state has changed before emitting
+  if (firstRun) {
+    console.log('Reload on first run only');
+    firstRun = false;
+    io.emit('reload', { message: 'Reload the page' }); // Emit reload event only on first run
+  } 
   // Emit initial connection messages to the client
   socket.emit('udpData-start', { TIMECODE: msToTimecode(msSinceMidnight(), frameRate), TEXT: 'TALLY-LOG CONNECTED to UDP via HTTP' });
   socket.emit('tcpData-start', { TIMECODE: msToTimecode(msSinceMidnight(), frameRate), TEXT: 'TALLY-LOG CONNECTED to TCP via HTTP' });

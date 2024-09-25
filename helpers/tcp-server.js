@@ -9,7 +9,7 @@ function closeTCP(){
 }
 
 function setupTCP() {
-  console.log('setting up tcp server')
+  // console.log('tcp-server.js setupTCP function: Setting up tcp server')
   tcpServer = net.createServer((socket) => {
     socket.on('data', (data) => {
       const delim = Buffer.from([0xfe, 0x02]);
@@ -32,8 +32,6 @@ function setupTCP() {
 
   tcpServer.listen(config.ports.listenPort, config.ports.listenIP, () => {
     console.log(`TCP Server listening on - ${config.ports.listenIP}:${config.ports.listenPort}`);
-    // console.log(`from - ${new Date().toLocaleString()}`);
-    console.log('\n\nPress Control+ P to output AAF and - RESET - the Tally capture\n\nControl+ O will - NOT - reset the Tally capture\n\nControl+ C to output AAF and - EXIT - script (e.g., at the end of the night)\n\n');
   });
 }
 

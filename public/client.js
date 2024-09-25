@@ -12,6 +12,27 @@ $(document).ready(function () { // Once page is loaded...
       $('#frameRateInput').val(data.frameRate);
     });
 
+  // Fetch initial button states
+  $.get('/api/button-states', function (data) {
+    // console.log('Fetched Initial Button States:', data);
+    const udpButton = $('#btn4');
+    const tcpButton = $('#btn5');
+
+    // Update UDP button state
+    if (data.udpEnabled) {
+      udpButton.addClass("btn-success").removeClass("btn-light").val('UDP ON');
+    } else {
+      udpButton.addClass("btn-light").removeClass("btn-success").val('UDP OFF');
+    }
+
+    // Update TCP button state
+    if (data.tcpEnabled) {
+      tcpButton.addClass("btn-success").removeClass("btn-light").val('TCP ON');
+    } else {
+      tcpButton.addClass("btn-light").removeClass("btn-success").val('TCP OFF');
+    }
+  });
+
   // Fetch color options from the server
   $.get('/api/colors', function(colors) {
       // Generate the options string
@@ -19,11 +40,12 @@ $(document).ready(function () { // Once page is loaded...
       initializeDataTable(colorOptions); // Pass the colorOptions to the DataTable initialization
   });
 
-  // set initial start and end times - currently UTC
+  // Set initial start and end times - currently UTC
   const now = new Date().toISOString();
   $('#logStartTime').data('datetime', now);   
   $('#logEndTime').data('datetime', now);   
 });
+
 
 
 function initializeDataTable(colorOptions) {
@@ -354,6 +376,11 @@ function debounce(func, wait) {
 // moved from index.htm
 
 const socket = io(); // HTTP connection
+
+socket.on('reload', (data) => {
+  location.reload(); // Reload the page
+  console.log('Reload event received:', data);
+});
 // A reusable function to handle data
 function handleData(eventType, data) {
   const table = $('#dataTable tbody');

@@ -14,11 +14,14 @@ const { getTallyEvents } = require('./TallyLogService');
 const { timedOutput } = require('./timer.js')
 
 function setupHTTP() {
+  // console.log('SetupHTTP Initial Config:', config); //Debug
+
+
   app.use(express.static('public')); // Serve static files from public directory
-
   app.use(express.urlencoded({ extended: true })); // must come before routing
-  app.use(express.json()); // this handles any JSON bodies
+  app.use(express.json()); // Handles JSON bodies
 
+  // API end points...
   app.get('/api/tape-data', async (req, res) => {
     try {
       const tapeData = await prisma.source.findMany(); // Use the correct model name
@@ -42,7 +45,7 @@ function setupHTTP() {
       res.status(500).json({ message: 'Update failed', error: error.message });
     }
   });
- 
+
   // Endpoint to get the current frameRate
   app.get('/api/framerate', (req, res) => {
     res.json({ frameRate: frameRate });
@@ -50,18 +53,22 @@ function setupHTTP() {
 
   // Endpoint to set a new frameRate
   app.post('/api/framerate', (req, res) => {
-    let { frameRate } = req.body;
-    if (frameRate === 23.98) {
-      frameRate = 23.976; // Correcting to 23.976
-    }
-    const allowedFrameRates = [23.976, 24, 25, 29.97, 30, 50, 59.94, 60];
+    const newFrameRate = req.body.frameRate;
 
-    if (allowedFrameRates.includes(frameRate)) {
-      // Proceed to update frameRate in your storage or configuration
-      res.json({ message: 'FrameRate updated successfully', frameRate });
+    if (newFrameRate) {
+      // Correcting 23.98 to 23.976 if provided
+      let frameRate = newFrameRate === 23.98 ? 23.976 : newFrameRate;
+      
+      if (config.ALLOWED_FRAME_RATES.includes(frameRate)) {
+        // Proceed to update frameRate in your storage or configuration
+        res.json({ message: 'FrameRate updated successfully', frameRate });
+      } else {
+        // Frame rate is not in the allowed list
+        res.status(400).json({ error: 'Invalid frame rate. Allowed values: ' + allowedFrameRates.join(', ') });
+      }
     } else {
-      // FrameRate is not allowed, send an error response
-      res.status(400).json({ error: 'Invalid frame rate value' });
+      // Frame rate was not provided in the request
+      res.status(400).json({ error: 'No frame rate provided' });
     }
   });
 
@@ -81,12 +88,81 @@ function setupHTTP() {
 
   // THis is the code to handle buttons from the HTML page  
 
+
+ // Helper function to manage server states
+  function manageServerState(type, isEnabled) {
+    console.log(`manageServerState called: type=${type}, isEnabled=${isEnabled}`); //Debug
+    let setupFn, closeFn;
+    
+    if (type === 'udp') {
+      setupFn = setupUDP;
+      closeFn = closeUDP;
+    } else if (type === 'tcp') {
+      setupFn = setupTCP;
+      closeFn = closeTCP;
+    }
+
+    console.log(`---Managing ${type.toUpperCase()} server. Enabled: ${isEnabled}`); //Debug
+
+
+    if (isEnabled) {
+      console.log(`Starting ${type.toUpperCase()} server on port ${config.ports.listenPort}`);
+      setupFn(io, config.ports.listenPort); // Adjust parameters as necessary
+      return `${type.toUpperCase()} started on port ${config.ports.listenPort}`;
+    } else {
+      console.log(`Stopping ${type.toUpperCase()} server`);
+      closeFn();
+      return `${type.toUpperCase()} server stopped`;
+    }
+  }
+  // Set initial state
+  if (config.enableTCP) {
+    manageServerState('tcp', config.enableTCP);
+  }
+  if (config.enableUDP) {
+    manageServerState('udp', config.enableUDP);
+  }
+  // Updated button states endpoint
+  app.post('/api/button-states', (req, res) => {
+    const { udpEnabled, tcpEnabled } = req.body;
+
+    // Validate input
+    if (typeof udpEnabled !== 'boolean' || typeof tcpEnabled !== 'boolean') {
+      return res.status(400).json({ error: 'Invalid input. Expected boolean values for udpEnabled and tcpEnabled.' });
+    }
+    // Update config based on the received values
+    config.enableUDP = udpEnabled;
+    config.enableTCP = tcpEnabled;
+
+    // Manage UDP and TCP servers
+    const udpStatus = manageServerState('udp', udpEnabled);
+    const tcpStatus = manageServerState('tcp', tcpEnabled);
+
+    // Respond with the updated state
+    res.json({
+      message: 'Button states updated successfully',
+      udpStatus,
+      tcpStatus
+    });
+  });
+
+  // Endpoint to get the current button states (UDP and TCP)
+  app.get('/api/button-states', (req, res) => {
+    const response = {
+      udpEnabled: config.enableUDP,
+      tcpEnabled: config.enableTCP,
+    };
+    console.log('api/button-states response:', response); // debug
+    res.json(response);
+  });
+
   app.route('/tally') //used to unite all the requst types for the same route
     .post(function (req, res) { //handles incoming POST requests
   
       var serverResponse = { status: '' };
       // nb logStartTime and logEndTime are DateISOString atm
       var btn = req.body.id, val = req.body.val, startTime = req.body.logStartTime, endTime = req.body.logEndTime;// get the button id and value
+      // console.log(`File: ${__filename} - Button state value:`, val);
       if (btn == "btn1") {
         if (val == 'on') { //if button is clicked
           // console.log('Client request to start the tally logging');
@@ -100,8 +176,8 @@ function setupHTTP() {
         }
       }
       if (btn == "btn2") {
-        console.log('Client request to output only');
-        console.log('\n\nINFO: writing AAF/AVB/OTIO files -- WITHOUT resetting -- tallyLog\n\n')
+        // console.log('http-server.js Btn2: Client request to output only');
+        // console.log('\n\nINFO: writing AAF/AVB/OTIO files -- WITHOUT resetting -- tallyLog\n\n')
 
         getTallyEvents(startTime, endTime)
           .then(data => { // data.startTime, data.endTime, data.events
@@ -117,13 +193,13 @@ function setupHTTP() {
         res.send(serverResponse); //send response to the server
       }
       if (btn == "btn3") {
-        console.log('Client request to output and reset');
-        console.log('\n\nINFO: writing AAF/AVB/OTIO files and -- RESETTING -- tallyLog\n\n')
+        // console.log('http-server.js Btn3: Client request to output and reset');
+        // console.log('\n\nINFO: writing AAF/AVB/OTIO files and -- RESETTING -- tallyLog\n\n')
         getTallyEvents(startTime, endTime)
           .then(data => {
             // console.log(events);
-            // Process events
             // console.log(`Retrieved ${events.length} events.`);
+            // Process events
             timedOutput(reset = true, timed = false, data = data);
 
           })
@@ -134,9 +210,10 @@ function setupHTTP() {
         serverResponse.status = 'Reset.';
         res.send(serverResponse); //send response to the server
       }
-      if (btn == "btn4") { // UDP BUTTON
+      if (btn == "btn4") { // Button 4 is UDP toggle
+
         if (val == 'udp-on') {
-          console.log('Client request to start UDP server/listener');
+          // console.log('http-server.js Btn4: Client request to start UDP server/listener');
           // ... UDP server setup ...
           serverResponse.status = `UDP starting... on ${config.ports.listenPort}`;
           setupUDP(io, config.ports.listenPort);
@@ -145,12 +222,12 @@ function setupHTTP() {
         }
         else {
           closeUDP();
-          console.log('UDP port closed');
         }
       }
       if (btn == "btn5") { // TCP BUTTON
+
         if (val == 'tcp-on') {
-          console.log('Client request to start TCP server/listener');
+          // console.log('http-server.js Btn5: Client request to start TCP server/listener');
           // ... TCP server setup ...
           serverResponse.status = `TCP starting... on ${config.ports.listenIP}:${config.ports.listenPort}`;
           // ... TCP server setup ...
@@ -160,7 +237,6 @@ function setupHTTP() {
         }
         else {
           closeTCP();
-          console.log('TCP port closed');
         }
       }
     });
