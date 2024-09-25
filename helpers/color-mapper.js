@@ -1,55 +1,58 @@
 // color-mapper.js
+// This module assigns tape names and colors to unique labels fetched from the Prisma database.
+// If a tape name is missing for a label, it defaults to using the label as the tape name and assigns a default grey color (RGB [128, 128, 128]).
+
 const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient({
-  // log: ['query', 'info', 'warn', 'error'],
-});
+const prisma = new PrismaClient();
 
+/**
+ * This function takes clip data, extracts unique labels, 
+ * and assigns each a corresponding tape name and color from the Prisma database.
+ * @param {Object} data - Object containing 'clips' (array of clip data) and time range 'start'/'end'.
+ * @returns {Object} - Returns an object mapping unique labels to their respective tape names and colors.
+ */
+async function uniqueLabelsToColors(data) {
+    // Extract clips array and relevant time range
+    const array = data['clips'];
+    const start = data['start'];
+    const end = data['end'];
 
-/* assigns tape name and colors to those labels that are unique (from PRISMA db) */
-/* any missing tape names use label as tape name and a default grey color */
+    // Extract unique labels from the 'TEXT' key of the clips array
+    const uniqueLabels = [...new Set(array.map(item => item.TEXT))].sort();
+    
+    // Add 'PGM' as an additional unique label, assuming it's always needed
+    uniqueLabels.push('PGM');
 
-async function uniqueLabelsToColors(data){
-	// console.log('Received data in uniqueLabelsToColors:', data);
-	const array = data['clips'];
-	const start = data['start'];
-	const end = data['end'];
-	const key = 'TEXT';
+    // Result object to store tape names and color mappings for unique labels
+    const result = {};
 
-	// create unique array of source
-	const uniqueLabels = [...new Set(array.map(item => item.TEXT))].sort();
-	// Add PGM (which is hopefully unique!)
-	uniqueLabels.push('PGM');
-	
-	// Fetch Source records
-	// const tapeNameData = await prisma.source.findMany();
-	const result = {};
-	// console.log(tapeNameData); // check this is valid
+    // Iterate through each unique label
+    for (let i = 0; i < uniqueLabels.length; i++) {
+        try {
+            // Attempt to find the corresponding source record for the current label in the database
+            const tapeExists = await prisma.source.findUnique({
+                where: { label: uniqueLabels[i] },
+            });
 
-for (let i = 0; i < uniqueLabels.length; i++) {
-	try{
-	// Find source in unique labels and add correct Color Value from tape_name_file_path
-		const tapeExists = await prisma.source.findUnique({
-			where: {
-			label: uniqueLabels[i],
-			},
-		});
-		if (!tapeExists) {
-			// console.log("----" + uniqueLabels[i] + " has no entry in tapeNameData  ------")
-			result[uniqueLabels[i]] = [uniqueLabels[i], [128,128,128],'Iris'];
-		}
-		else {
-			// console.log(tapeExists.clipColorRGB);
-			// console.log(tapeExists);
-			result[uniqueLabels[i]] = [tapeExists.tapeName, tapeExists.clipColorRGB.split(',').map(Number,), tapeExists.clipColorPP];
-			}
-		}
-	catch (error){
-		console.log("Error color-mapper: ", error.message);
-	}
-}
-	// result is JSON sources against colours
-	// console.log(result)
-	return result;
+            // If no source record is found, assign the default gray color and use the label as the tape name
+            if (!tapeExists) {
+                result[uniqueLabels[i]] = [uniqueLabels[i], [128, 128, 128], 'Iris'];
+            } else {
+                // If a source record is found, assign the tape name and RGB color (from database)
+                result[uniqueLabels[i]] = [
+                    tapeExists.tapeName,
+                    tapeExists.clipColorRGB.split(',').map(Number), // Convert RGB string to array of numbers
+                    tapeExists.clipColorPP // Use the stored Premiere Pro color value
+                ];
+            }
+        } catch (error) {
+            // Log any errors encountered during database lookup
+            console.log("Error in color-mapper: ", error.message);
+        }
+    }
+
+    // Return the final result object mapping unique labels to their tape names and colors
+    return result;
 }
 
 module.exports = { uniqueLabelsToColors };

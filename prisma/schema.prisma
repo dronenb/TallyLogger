@@ -55,6 +55,7 @@ model TSLMessage {
   // source     Source? @relation(fields: [sourceId], references: [id])
 }
 
+// To hold sources used in TSL messages
 model Source {
   id          Int    @id @default(autoincrement())
   label       String @unique
@@ -67,6 +68,7 @@ model Source {
   // tslMessages TSLMessage[]
 }
 
+// To hold?
 model Color {
   id       Int    @id @default(autoincrement())
   name     String @unique

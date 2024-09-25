@@ -11,7 +11,7 @@ async function handleExit() {
   try {
     // await new Promise((resolve, reject) => {
       // Placeholder for any cleanup actions you might want to perform before exit
-      console.log('this would be a function to do when exiting');
+      // console.log('this would be a function to do when exiting');
     // });
 
     // Pause stdin and exit the process cleanly
@@ -33,7 +33,7 @@ function setupKeyEvents(stdin, timedOutput) {
 
     // Event listener for keypress events
     stdin.on('keypress', function (ch, key) {
-      console.log('\n\nINFO: got "keypress"', key);
+      // console.log('\n\nINFO: got "keypress"', key);
   
       // Ctrl + C: Exit the process
       if (key && key.ctrl && key.name == 'c') {

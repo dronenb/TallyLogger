@@ -22,8 +22,8 @@ if not sys.stdin.isatty():
     data = json.loads(input_str)
     # NB data is events {start, end, clips[{TIME, TEXT}]}
     # NB tapeInfo is {TEXT: [TapeName, colorRGB], etc}
-    events = data['data']
-    dictMasterMobInfo = data['tapeInfo']
+    events = data['data'] # Tally events
+    dictMasterMobInfo = data['tapeInfo'] # Tape Name, Colour etc
     result_dir = json.loads(sys.argv[1]) 
     edit_rate = json.loads(sys.argv[2])
 

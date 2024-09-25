@@ -18,7 +18,6 @@ const { setupHTTP } = require('./helpers/http-server');
 
 // Prisma setup for managing tape name data in the database
 const { setupTapeNamePrisma } = require('./helpers/TallyLogService')
-// const { parseCSVFile, tapeNameData } = require('./helpers/csv-parser');
 
 // Timer and logging utilities for handling timeouts and events
 const { setTimer, timedOutput } = require('./helpers/timer');
@@ -31,6 +30,7 @@ setTimer();
 
 // Setup the HTTP server and listen on the configured port
 setupHTTP();
+
 htmlServer.listen(config.ports.htmlPort, () => {
   console.log(`Server.JS: HTTP Server listening on port ${config.ports.htmlPort}`);
 });
@@ -39,14 +39,14 @@ let clientConnected = false;
 let firstRun = true;
 
 io.on('connection', (socket) => {
-  console.log('Client connected');
-  clientConnected = true;
   // Check if the state has changed before emitting
   if (firstRun) {
+    console.log('Client connected');
     console.log('Reload on first run only');
     firstRun = false;
     io.emit('reload', { message: 'Reload the page' }); // Emit reload event only on first run
   } 
+  clientConnected = true;
   // Emit initial connection messages to the client
   socket.emit('udpData-start', { TIMECODE: msToTimecode(msSinceMidnight(), frameRate), TEXT: 'TALLY-LOG CONNECTED to UDP via HTTP' });
   socket.emit('tcpData-start', { TIMECODE: msToTimecode(msSinceMidnight(), frameRate), TEXT: 'TALLY-LOG CONNECTED to TCP via HTTP' });

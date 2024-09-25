@@ -15,6 +15,33 @@ PIXEL_ASPECT_RATIO = "square"
 FIELD_DOMINANCE = "none"
 COLOR_DEPTH = "24"
 
+def create_sample_characteristics(parent_element, edit_rate):
+    samplecharacteristics = ET.SubElement(parent_element, "samplecharacteristics")
+    create_rate_element(samplecharacteristics, edit_rate)
+    ET.SubElement(samplecharacteristics, "width").text = VIDEO_WIDTH
+    ET.SubElement(samplecharacteristics, "height").text = VIDEO_HEIGHT
+    ET.SubElement(samplecharacteristics, "anamorphic").text = "FALSE"
+    ET.SubElement(samplecharacteristics, "pixelaspectratio").text = PIXEL_ASPECT_RATIO
+    ET.SubElement(samplecharacteristics, "fielddominance").text = FIELD_DOMINANCE
+    ET.SubElement(samplecharacteristics, "colordepth").text = COLOR_DEPTH
+    return samplecharacteristics
+
+def create_file_element(parent, tape_name, sequence_length_frames, sequence_start_frames, edit_rate):
+    file_element = ET.SubElement(parent, 'file', id=f"{tape_name}")
+    ET.SubElement(file_element, 'name').text = tape_name
+    ET.SubElement(file_element, 'pathurl').text = tape_name
+    create_rate_element(file_element, edit_rate)
+    ET.SubElement(file_element, 'duration').text = str(sequence_length_frames)
+    create_timecode_element(file_element, sequence_start_frames, edit_rate, "NDF", tape_name)
+    
+    # Add media and video elements
+    media = ET.SubElement(file_element, "media")
+    video = ET.SubElement(media, "video")
+    create_sample_characteristics(video, edit_rate)
+    
+    return file_element
+
+
 # Check if there is data on stdin
 if not sys.stdin.isatty():
     # print("WriteTallyXML: Using data from stdin")
@@ -131,28 +158,16 @@ def generate_premiere_xml(events, sequence_name, edit_rate):
     video = ET.SubElement(media, "video")
 
     format = ET.SubElement(video, "format")
-    # Add samplecharisteristics and its children
-    samplecharacteristics = ET.SubElement(format, "samplecharacteristics")
+    create_sample_characteristics(format, edit_rate)
     
-    create_rate_element(samplecharacteristics, edit_rate)
-
-    # # Add codec element
-    # codec = ET.SubElement(samplecharacteristics, "codec") #TODO nb - have ignored children
-
     create_timecode_element(sequence, sequence_start_frames, edit_rate, "NDF")
     
-    ET.SubElement(samplecharacteristics, "width").text = VIDEO_WIDTH #TODO VALUE TO ADD PROGRAMATTICALLY
-    ET.SubElement(samplecharacteristics, "height").text = VIDEO_HEIGHT #TODO VALUE TO ADD PROGRAMATTICALLY
-    ET.SubElement(samplecharacteristics, "anamorphic").text = "FALSE" #TODO VALUE TO ADD PROGRAMATTICALLY
-    ET.SubElement(samplecharacteristics, "pixelaspectratio").text = PIXEL_ASPECT_RATIO #TODO VALUE TO ADD PROGRAMATTICALLY
-    ET.SubElement(samplecharacteristics, "fielddominance").text = FIELD_DOMINANCE #TODO VALUE TO ADD PROGRAMATTICALLY
-    ET.SubElement(samplecharacteristics, "colordepth").text = COLOR_DEPTH #TODO VALUE TO ADD PROGRAMATTICALLY
-
     # Add track element
     track1 = ET.SubElement(video, "track", attrib={"MZ.TrackName": "V1 - SRC"})
     track2 = ET.SubElement(video, "track", attrib={"MZ.TrackName": "V2 - PGM"})
 
     current_frame_placement = 0
+    end_frame_placement = 0
     # Iterate through the tally events to create clip items
     for idx, event in enumerate(events['clips']):
         if idx < len(events['clips']) - 1:
@@ -177,26 +192,8 @@ def generate_premiere_xml(events, sequence_name, edit_rate):
                 unique_tape_names.append(tape_name)
                 masterClipIdx = unique_tape_names.index(tape_name)+1
                 ET.SubElement(clipitem, 'masterclipid').text = f"masterclip-{masterClipIdx}" # Get index of the tape_name
-
-                file_element = ET.SubElement(clipitem, 'file', id= f"{tape_name}")
-                ET.SubElement(file_element, 'name').text = f"{tape_name}"
-                ET.SubElement(file_element, 'pathurl').text = f"{tape_name}"
-                create_rate_element(file_element, edit_rate)
-                ET.SubElement(file_element, 'duration').text = str(sequence_length_frames)
-                create_timecode_element(file_element, sequence_start_frames, edit_rate, "NDF", f"{tape_name}")
-                # Add media element and its children
-                media = ET.SubElement(file_element, "media")
-                video = ET.SubElement(media, "video")
-                # Add samplecharisteristics and its children
-                samplecharacteristics = ET.SubElement(video, "samplecharacteristics")
-                create_rate_element(samplecharacteristics, edit_rate)
-                ET.SubElement(samplecharacteristics, "width").text = VIDEO_WIDTH #TODO VALUE TO ADD PROGRAMATTICALLY
-                ET.SubElement(samplecharacteristics, "height").text = VIDEO_HEIGHT #TODO VALUE TO ADD PROGRAMATTICALLY
-                ET.SubElement(samplecharacteristics, "anamorphic").text = "FALSE" #TODO VALUE TO ADD PROGRAMATTICALLY
-                ET.SubElement(samplecharacteristics, "pixelaspectratio").text = PIXEL_ASPECT_RATIO #TODO VALUE TO ADD PROGRAMATTICALLY
-                ET.SubElement(samplecharacteristics, "fielddominance").text = FIELD_DOMINANCE #TODO VALUE TO ADD PROGRAMATTICALLY
-
-
+                create_file_element(clipitem, tape_name, sequence_length_frames, sequence_start_frames, edit_rate)
+                
             ET.SubElement(clipitem, 'name').text = f"{tape_name}"
             # In / Out are source position in frames from start of clip
             # ET.SubElement(clipitem, 'in').text = str(0)
@@ -207,12 +204,15 @@ def generate_premiere_xml(events, sequence_name, edit_rate):
 
             # Start / End are timeline position in frames from start of timeline
             ET.SubElement(clipitem, 'start').text = str(current_frame_placement)
-            current_frame_placement = current_frame_placement + duration
-            ET.SubElement(clipitem, 'end').text = str(current_frame_placement)
-            ET.SubElement(clipitem, 'duration').text = str(duration)
+            end_frame_placement = current_frame_placement + duration
+            ET.SubElement(clipitem, 'end').text = str(end_frame_placement)
+            ET.SubElement(clipitem, 'duration').text = str(sequence_length_frames)
+            current_frame_placement = end_frame_placement
             ET.SubElement(ET.SubElement(clipitem, 'labels'), 'label2').text = color_pp
 
     current_frame_placement = 0
+    end_frame_placement = 0
+
     # Iterate through the tally events to create clip items as PGM on V2
     for idx, event in enumerate(events['clips']):
         if idx < len(events['clips']) - 1:
@@ -240,24 +240,8 @@ def generate_premiere_xml(events, sequence_name, edit_rate):
                 unique_tape_names.append(tape_name)
                 masterClipIdx = unique_tape_names.index(tape_name)+1
                 ET.SubElement(clipitem, 'masterclipid').text = f"masterclip-{masterClipIdx}" # Get index of the tape_name
-                file_element = ET.SubElement(clipitem, 'file', id= f"{tape_name}")
-                ET.SubElement(file_element, 'name').text = "PGM"
-                ET.SubElement(file_element, 'pathurl').text = f"{tape_name}"
-                create_rate_element(file_element, edit_rate)
-                ET.SubElement(file_element, 'duration').text = str(sequence_length_frames)
-                create_timecode_element(file_element, sequence_start_frames, edit_rate, "NDF", f"{tape_name}")
-                # Add media element and its children
-                media = ET.SubElement(file_element, "media")
-                video = ET.SubElement(media, "video")
-                # Add samplecharisteristics and its children
-                samplecharacteristics = ET.SubElement(video, "samplecharacteristics")
-                create_rate_element(samplecharacteristics, edit_rate)
-                ET.SubElement(samplecharacteristics, "width").text = VIDEO_WIDTH #TODO VALUE TO ADD PROGRAMATTICALLY
-                ET.SubElement(samplecharacteristics, "height").text = VIDEO_HEIGHT #TODO VALUE TO ADD PROGRAMATTICALLY
-                ET.SubElement(samplecharacteristics, "anamorphic").text = "FALSE" #TODO VALUE TO ADD PROGRAMATTICALLY
-                ET.SubElement(samplecharacteristics, "pixelaspectratio").text = PIXEL_ASPECT_RATIO #TODO VALUE TO ADD PROGRAMATTICALLY
-                ET.SubElement(samplecharacteristics, "fielddominance").text = FIELD_DOMINANCE #TODO VALUE TO ADD PROGRAMATTICALLY
-
+                create_file_element(clipitem, tape_name, sequence_length_frames, sequence_start_frames, edit_rate)
+                
             ET.SubElement(clipitem, 'name').text = f"PGM- {source}" #TODO check if we want Source here
             # In / Out are source position in frames from start of clip
             # ET.SubElement(clipitem, 'in').text = str(0)
@@ -270,7 +254,7 @@ def generate_premiere_xml(events, sequence_name, edit_rate):
             ET.SubElement(clipitem, 'start').text = str(current_frame_placement)
             current_frame_placement = current_frame_placement + duration
             ET.SubElement(clipitem, 'end').text = str(current_frame_placement)
-            ET.SubElement(clipitem, 'duration').text = str(duration)
+            ET.SubElement(clipitem, 'duration').text = str(sequence_length_frames)
             ET.SubElement(ET.SubElement(clipitem, 'labels'), 'label2').text = color_pp
 
 

@@ -1,3 +1,6 @@
+// no longer used I think
+
+
 const fs = require('fs');
 const { parse: parseCSV } = require('csv-parse');
 

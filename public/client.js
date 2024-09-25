@@ -377,6 +377,11 @@ function debounce(func, wait) {
 
 const socket = io(); // HTTP connection
 
+// Listen for source updates
+socket.on('sourceUpdated', (sourceData) => {
+    fetchSources(); // Refresh the sources list when a source is updated
+});
+
 socket.on('reload', (data) => {
   location.reload(); // Reload the page
   console.log('Reload event received:', data);
@@ -466,3 +471,4 @@ function getCssColor(colorName) {
   }
   return colorMapping[colorName.toUpperCase()] || 'transparent'; // Default to transparent if not found
 }
+
