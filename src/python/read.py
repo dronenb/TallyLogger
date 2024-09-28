@@ -1,3 +1,6 @@
+## utility code to read aaf file
+# not used currently
+
 import aaf2
 
 file_name = "/Users/trevoraylward/Downloads/Sample for OTIO/Examples/VIDEO - Group Clips/AMC - as AAF/AvidSeq-withTestGroupClip x3 layers.aaf"

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+## I think this was where I was trying to emulate the Anton workflow
+# from xterm ParseTc - apparently
+
 ## GOT THIS WORKING
 # up to a point - getting correct start timecode is tricky, frame rates and drop-frame not handled
 

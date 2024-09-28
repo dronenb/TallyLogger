@@ -372,9 +372,6 @@ function debounce(func, wait) {
     timeout = setTimeout(later, wait);
   };
 }// end function debounce
-
-// moved from index.htm
-
 const socket = io(); // HTTP connection
 
 // Listen for source updates

@@ -1,5 +1,5 @@
-#getTapeData.py
-#Not sure this is still used yet
+# getTapeData.py
+# Not currently used
 
 import sys
 import csv

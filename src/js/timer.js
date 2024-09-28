@@ -10,7 +10,7 @@
 // 3. timedOutput(reset, timed, data): Creates output files based on the current tally data and emits 
 //    events through socket.io. Can be called manually or automatically, with optional log reset.
 
-const { io, msToTimecode, msSinceMidnight, frameRate } = require('../config');
+const { io, msToTimecode, msSinceMidnight, frameRate } = require('./config');
 const pythonScripts = require('./python-scripts');
 
 let timeToOutputId = null;

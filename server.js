@@ -4,23 +4,23 @@
 // It integrates global configuration from config.js, loads tape name data, manages timed events, 
 // and listens for client connections to interact with UDP/TCP listeners and web-based tally control.
 
-const { config, opener, htmlServer, io, msToTimecode, msSinceMidnight, frameRate } = require('./config');
+const { config, opener, htmlServer, io, msToTimecode, msSinceMidnight, frameRate } = require('./src/js/config');
 
 // Use `config` object to access global variables
 // console.log("config.ports: ", config.ports);
 // console.log("config.paths: ", config.paths);
 
 // Key-Events (for terminal interaction, less used now due to HTTP web GUI)
-const { setupKeyEvents } = require('./helpers/key-events');
+const { setupKeyEvents } = require('./src/js/key-events');
 
 // HTTP Server setup for serving the web GUI and handling requests
-const { setupHTTP } = require('./helpers/http-server');
+const { setupHTTP } = require('./src/js/http-server');
 
 // Prisma setup for managing tape name data in the database
-const { setupTapeNamePrisma } = require('./helpers/TallyLogService')
+const { setupTapeNamePrisma } = require('./src/js/TallyLogService')
 
 // Timer and logging utilities for handling timeouts and events
-const { setTimer, timedOutput } = require('./helpers/timer');
+const { setTimer, timedOutput } = require('./src/js/timer');
 
 // Initialize tape name data using Prisma
 setupTapeNamePrisma();

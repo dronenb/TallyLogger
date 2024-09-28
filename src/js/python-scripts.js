@@ -4,7 +4,7 @@
 // not sure why I did this for otio?
 
 const { uniqueLabelsToColors } = require('./color-mapper');
-const { config, frameRate } = require('../config');
+const { config, frameRate } = require('./config');
 const spawn = require("child_process").spawn;
 
 /* CALL Python scripts with arguments */
@@ -13,7 +13,7 @@ const spawn = require("child_process").spawn;
 async function writeToAAF(data)	{
 	// console.log('writeToAAF:', data);
 
-	const file_path = "./writeTallyAAF.py"
+	const file_path = "../python/writeTallyAAF.py"
 	const pythonProcess = spawn('python3', [file_path, config.paths.aafFilePath, frameRate]);
 	const tapeInfo = await uniqueLabelsToColors(data);
 
@@ -34,7 +34,7 @@ async function writeToAAF(data)	{
 
 async function writeToAVB(data)	{
 
-	const file_path = "./writeTallyAVB.py"
+	const file_path = "../python/writeTallyAVB.py"
 	const pythonProcess = spawn('python3', [file_path, config.paths.avbFilePath, frameRate]);
 	const tapeInfo = await uniqueLabelsToColors(data);
 	
@@ -54,7 +54,7 @@ async function writeToAVB(data)	{
 }
 
 async function writeToOTIO(data)	{
-	const file_path = "./writeTallyOTIO.py"
+	const file_path = "../python/writeTallyOTIO.py"
 	const pythonProcess = spawn('python3',[file_path, config.paths.otioFilePath, frameRate]);
 	const tapeInfo = await uniqueLabelsToColors(data);
 	
@@ -74,7 +74,7 @@ async function writeToOTIO(data)	{
 }
 
 async function writeToXML(data)	{
-	const file_path = "./writeTallyXML.py"
+	const file_path = "../python/writeTallyXML.py"
 	const pythonProcess = spawn('python3',[file_path, config.paths.xmlFilePath, frameRate]);
 	const tapeInfo = await uniqueLabelsToColors(data);
 	// console.log(tapeInfo);

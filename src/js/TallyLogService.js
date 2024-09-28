@@ -1,6 +1,6 @@
 // helpers/TallyLogService.js
 
-const { io,  msToTimecode, msSinceMidnight, frameRate, fs, path } = require('../config');
+const { io,  msToTimecode, msSinceMidnight, frameRate, fs, path } = require('./config');
 const { PrismaClient } = require('@prisma/client');
 const jspack = require('jspack').jspack; // Unpacks Binary data
 
@@ -145,7 +145,7 @@ const tapeItems = await getCSV();
 }
 
 async function getCSV() {
-  const tapeNameDataPath = path.resolve(__dirname, '../data/TallyTapeName.csv');
+  const tapeNameDataPath = path.resolve(__dirname, '../../data/TallyTapeName.csv');
 
   try {
     const data = await fs.promises.readFile(tapeNameDataPath, "utf8");

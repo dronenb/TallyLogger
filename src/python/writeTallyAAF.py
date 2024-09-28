@@ -5,7 +5,6 @@ import os
 import logging
 from utils.converters import frames_to_TC, msToFrames, msToHMS, convert_8_16bit
 
-
 ## NOW has master mobs = sequence length created and used 
 ## TODO - increase number of arguments from index.js so nothing needs to be changed in here
 ## TODO - think about audio
@@ -13,7 +12,6 @@ from utils.converters import frames_to_TC, msToFrames, msToHMS, convert_8_16bit
 comments = True
 frames = 0
 tc = ""
-
 
 # Check if there is data on stdin
 if not sys.stdin.isatty():

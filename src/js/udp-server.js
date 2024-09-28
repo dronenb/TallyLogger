@@ -1,4 +1,4 @@
-const { config } = require('../config');
+const { config } = require('./config');
 const dgram = require('node:dgram');
 const bsplit = require('buffer-split');
 const { saveTallyMessage } = require('./TallyLogService');

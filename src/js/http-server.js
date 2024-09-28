@@ -3,22 +3,28 @@
 // It includes routes for interacting with a SQLite database via Prisma, handling frame rate settings, managing tally logs, 
 // and controlling UDP and TCP listeners. It also provides endpoints for updating tape metadata, fetching logs, and color management.
 
-const { config, express, app, io, frameRate } = require('../config'); // Imports configuration, Express app, and other shared objects
+const { config, express, app, io, frameRate } = require('./config'); // Imports configuration, Express app, and other shared objects
 const { setupUDP, closeUDP } = require('./udp-server'); // Functions to manage UDP server
 const { setupTCP, closeTCP } = require('./tcp-server'); // Functions to manage TCP server
 const { PrismaClient } = require('@prisma/client'); // Prisma ORM client for database interaction
 const prisma = new PrismaClient(); // Initialize Prisma client instance
 const { getTallyEvents } = require('./TallyLogService'); // Function to retrieve tally log events
 const { timedOutput } = require('./timer.js'); // Timed output function for processing log events
-
+const path = require('path');
 
 // Function to set up and initialize the HTTP server
 function setupHTTP() {
   console.log('http-server.js: Setting up HTTP')
   // Middleware setup for serving static files, parsing URL-encoded and JSON bodies
-  app.use(express.static('public')); // Serve static files from the 'public' directory
+  app.use(express.static(path.join(__dirname, '../public'))); // Serve static files from the 'public' directory
+  // console.log('Serving static files from:', path.join(__dirname, '../public'));
   app.use(express.urlencoded({ extended: true })); // Parse URL-encoded data
   app.use(express.json()); // Parse JSON request bodies
+  app.use((err, req, res, next) => {
+    console.error(err);
+    res.status(500).send('Something broke!');
+  });
+  
 
   // --- API Routes ---
 
