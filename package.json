@@ -22,7 +22,7 @@
     "body-parser": "^1.20.2",
     "buffer-split": "^1.0.0",
     "csv-parse": "^5.5.5",
-    "express": "^4.18.3",
+    "express": "^4.21.2",
     "fs": "^0.0.1-security",
     "jspack": "^0.0.4",
     "keypress": "^0.2.1",
