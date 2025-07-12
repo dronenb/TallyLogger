@@ -6,3 +6,4 @@ prisma/.DS_Store
 .gitignore
 .DS_Store
 data/tally_log.db
+utils/__pycache__
